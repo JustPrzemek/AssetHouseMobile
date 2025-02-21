@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.zebra.rfid.demo.sdksample.MainActivity">
+
+
+
+    <item
+        android:id="@+id/antenna_settings"
+        android:title="@string/antenna_settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/Singulation_control"
+        android:title="@string/Singulation_control"
+        app:showAsAction="never" />
+
+   <item
+        android:id="@+id/Default"
+        android:title="@string/Defaults"
+        app:showAsAction="never" />
+
+
+</menu>

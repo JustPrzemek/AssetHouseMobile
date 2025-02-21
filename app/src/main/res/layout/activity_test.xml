@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TestActivity">
+
+    <TextView
+        android:id="@+id/textrfid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RFID Status: " />
+
+    <TextView
+        android:id="@+id/textViewStatusrfid"
+        android:layout_below="@+id/textrfid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="" />
+
+    <Button
+        android:id="@+id/scan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textViewStatusrfid"
+        android:onClick="scanCode"
+        android:text="Scan" />
+
+    <TextView
+        android:id="@+id/scanResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/scan"
+        android:layout_marginLeft="5dp"
+        android:text="Scan Result" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0.5dp"
+        android:layout_below="@+id/scanResult"
+        android:orientation="horizontal"
+        android:id="@+id/layout">
+
+        <Button
+            android:id="@+id/TestButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="StartInventory"
+            android:layout_margin="5dp"
+            android:layout_below="@+id/textViewStatusrfid"
+            android:text="Start Inventory"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/TestButton2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textViewStatusrfid"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:onClick="StopInventory"
+            android:text="Stop Inventory"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/TestButton3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textViewStatusrfid"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:onClick="clearTags"
+            android:text="clear"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0.5dp"
+        android:layout_below="@+id/layout"
+        android:orientation="horizontal"
+        android:id="@+id/layout2">
+        <TextView
+            android:id="@+id/TagID"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TAG ID: " />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@+id/layout2"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="-1dp">
+
+        <TextView
+            android:id="@+id/edittextrfid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="none|textMultiLine"
+
+            />
+
+    </ScrollView>
+</RelativeLayout>
