@@ -29,11 +29,28 @@
         android:onClick="scanCode"
         android:text="Scan" />
 
+    <Button
+        android:id="@+id/btnRfidMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/scan"
+        android:text="RFID Mode"
+        android:onClick="enableRfidMode" />
+
+    <Button
+        android:id="@+id/btnBarcodeMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnRfidMode"
+        android:text="Barcode Mode"
+        android:onClick="enableBarcodeMode" />
+
+
     <TextView
         android:id="@+id/scanResult"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/scan"
+        android:layout_below="@+id/btnBarcodeMode"
         android:layout_marginLeft="5dp"
         android:text="Scan Result" />
     <LinearLayout

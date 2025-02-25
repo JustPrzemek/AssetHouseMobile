@@ -67,12 +67,6 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     String readerName = "RFD4031-G10B700-US";
     String RFD8500 = "RFD8500161755230D5038";
 
-//    void onCreate(MainActivity activity) {
-//        context = activity;
-//        textView = activity.statusTextViewRFID;
-//        scannerList = new ArrayList<>();
-//        InitSDK();
-//    }
     void onCreate(TestActivity activity) {
         context = activity;
         textView = activity.statusTextViewRFID;
@@ -80,6 +74,22 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
         InitSDK();
     }
 
+    public void setScanMode(boolean isRFID) {
+        try {
+            if (reader != null && reader.isConnected()) {
+                ENUM_TRIGGER_MODE mode = isRFID ? ENUM_TRIGGER_MODE.RFID_MODE : ENUM_TRIGGER_MODE.BARCODE_MODE;
+                reader.Config.setTriggerMode(mode, true);
+                Log.d(TAG, "Switched to: " + (isRFID ? "RFID" : "BARCODE"));
+
+                if (!isRFID) {
+                    Log.d(TAG, "Stopping RFID inventory because Barcode Mode is active.");
+                    stopInventory();
+                }
+            }
+        } catch (InvalidUsageException | OperationFailureException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     public void dcssdkEventScannerAppeared(DCSScannerInfo dcsScannerInfo) {
 
@@ -842,7 +852,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
                     ConfigureReader();
 
                     //Call this function if the readerdevice supports scanner to setup scanner SDK
-                    //setupScannerSDK();
+                    setupScannerSDK();
                     if(reader.isConnected()){
                         return "Connected: " + reader.getHostName();
                     }
@@ -1093,11 +1103,18 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
             e.printStackTrace();
         }
     }
-    public void scanCode(){
-        String in_xml = "<inArgs><scannerID>" + scannerID+ "</scannerID></inArgs>";
-        cmdExecTask = new MyAsyncTask(scannerID, DCSSDKDefs.DCSSDK_COMMAND_OPCODE.DCSSDK_DEVICE_PULL_TRIGGER, null);
-        cmdExecTask.execute(new String[]{in_xml});
+
+    public void scanCode() {
+        if (sdkHandler != null && scannerID != 0) {
+            Log.d(TAG, "Starting barcode scan...");
+            String in_xml = "<inArgs><scannerID>" + scannerID + "</scannerID></inArgs>";
+            cmdExecTask = new MyAsyncTask(scannerID, DCSSDKDefs.DCSSDK_COMMAND_OPCODE.DCSSDK_DEVICE_PULL_TRIGGER, null);
+            cmdExecTask.execute(new String[]{in_xml});
+        } else {
+            Log.e(TAG, "No scanner connected or invalid scanner ID.");
+        }
     }
+
 
     private class MyAsyncTask extends AsyncTask<String, Integer, Boolean> {
         int scannerId;
@@ -1178,48 +1195,57 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
             return cleaned.replaceAll("^(\\d+)-?(\\d?).*$", "$1-$2");
         }
 
-
-
         // Status Event Notification
         public void eventStatusNotify(RfidStatusEvents rfidStatusEvents) {
             Log.d(TAG, "Status Notification: " + rfidStatusEvents.StatusEventData.getStatusEventType());
+
             if (rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.HANDHELD_TRIGGER_EVENT) {
                 if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.getHandheldEvent() == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_PRESSED) {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            Log.d(TAG,"HANDHELD_TRIGGER_PRESSED");
-                            context.handleTriggerPress(true);
+                            Log.d(TAG, "HANDHELD_TRIGGER_PRESSED");
+
+                            if (context.isRFIDMode) {
+                                Log.d(TAG, "Triggering RFID scan...");
+                                context.handleTriggerPress(true);
+                            } else {
+                                Log.d(TAG, "Triggering Barcode scan...");
+                                context.rfidHandler.scanCode();
+                            }
                             return null;
                         }
                     }.execute();
                 }
+
                 if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.getHandheldEvent() == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_RELEASED) {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... voids) {
-                            context.handleTriggerPress(false);
-                            Log.d(TAG,"HANDHELD_TRIGGER_RELEASED");
+                            Log.d(TAG, "HANDHELD_TRIGGER_RELEASED");
+
+                            if (context.isRFIDMode) {
+                                context.handleTriggerPress(false);
+                            }
                             return null;
                         }
                     }.execute();
                 }
             }
+
             if (rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.DISCONNECTION_EVENT) {
                 new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
-
                         disconnect();
                         return null;
                     }
                 }.execute();
             }
-
         }
     }
 
-    private class AsyncDataUpdate extends AsyncTask<TagData[], Void, Void> {
+        private class AsyncDataUpdate extends AsyncTask<TagData[], Void, Void> {
         @Override
         protected Void doInBackground(TagData[]... params) {
             context.handleTagdata(params[0]);

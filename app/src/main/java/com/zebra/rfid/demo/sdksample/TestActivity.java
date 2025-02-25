@@ -31,6 +31,8 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
     final static String TAG = "AssetHouse";
     public static SDKHandler sdkHandler;
     private static final int BLUETOOTH_PERMISSION_REQUEST_CODE = 100;
+    boolean isRFIDMode = true;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,15 +64,30 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
         }
     }
 
+    public void enableRfidMode(View view) {
+        isRFIDMode = true;
+        rfidHandler.setScanMode(true);
+        rfidHandler.stopInventory();
+        scanResult.setText("");
+        Toast.makeText(this, "Switched to RFID Mode", Toast.LENGTH_SHORT).show();
+    }
+
+    public void enableBarcodeMode(View view) {
+        isRFIDMode = false;
+        rfidHandler.setScanMode(false);
+        rfidHandler.stopInventory();
+        textrfid.setText("");
+        Toast.makeText(this, "Switched to Barcode Mode", Toast.LENGTH_SHORT).show();
+    }
+
+
     @Override
     public void handleTagdata(TagData[] tagData) {
         final StringBuilder sb = new StringBuilder();
         for (int index = 0; index < tagData.length; index++) {
             String tagId = tagData[index].getTagID();
 //            int rssi = tagData[index].getPeakRSSI();
-
             sb.append(tagId + "\n");
-//            sb.append("TAG ID: " + tagId + "  |  RSSI: " + rssi + "\n");
         }
         runOnUiThread(new Runnable() {
             @Override
@@ -96,10 +113,20 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
 
     @Override
     public void barcodeData(String val) {
+        if (val == null || val.isEmpty()) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    scanResult.setText("No barcode received!");
+                }
+            });
+            return;
+        }
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                scanResult.setText("Scan Result : "+val);
+                scanResult.setText("Scan Result: " + val);
             }
         });
 
@@ -183,12 +210,16 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
     {
         textrfid.setText("");
         rfidHandler.performInventory();
-        //   rfidHandler.MultiTag();
     }
 
     public void scanCode(View view) {
-        rfidHandler.scanCode();
+        if (isRFIDMode) {
+            rfidHandler.performInventory();
+        } else {
+            rfidHandler.scanCode();
+        }
     }
+
 
     public void StopInventory(View view) {
         rfidHandler.stopInventory();
