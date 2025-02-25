@@ -37,6 +37,15 @@
         android:layout_below="@id/btn_test"
         android:layout_marginTop="16dp"/>
 
+    <Button
+        android:id="@+id/btn_areas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_test"
+        android:layout_marginTop="79dp"
+        android:onClick="openAreas"
+        android:text="AREAS" />
+
 
 </RelativeLayout>
 

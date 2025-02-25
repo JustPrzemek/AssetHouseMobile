@@ -27,9 +27,4 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, RoomsActivity.class);
         startActivity(intent);
     }
-    public void openAreas(View view){
-        Intent intent = new Intent(this, AreasActivity.class);
-        startActivity(intent);
-    }
-
 }
