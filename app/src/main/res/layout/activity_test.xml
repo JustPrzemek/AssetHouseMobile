@@ -48,10 +48,10 @@
             android:id="@+id/TestButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/textViewStatusrfid"
+            android:layout_margin="5dp"
             android:layout_weight="1"
             android:onClick="StartInventory"
-            android:layout_margin="5dp"
-            android:layout_below="@+id/textViewStatusrfid"
             android:text="Start Inventory"
             android:textSize="10sp" />
 

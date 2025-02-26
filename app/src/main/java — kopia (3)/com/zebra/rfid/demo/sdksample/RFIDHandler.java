@@ -104,7 +104,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     public void dcssdkEventBarcode(byte[] barcodeData, int barcodeType, int fromScannerID) {
         String s = new String(barcodeData);
         context.barcodeData(s);
-        Log.d(TAG,"barcode ="+ s);
+        Log.d(TAG,"barcaode ="+ s);
     }
 
     @Override
