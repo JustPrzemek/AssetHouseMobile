@@ -27,9 +27,7 @@
         <activity android:name=".AreasActivity" />
         <activity android:name=".AreaDetailsActivity"/>
 
-        <activity
-            android:name=".RoomsActivity"
-            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
