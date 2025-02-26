@@ -29,9 +29,18 @@ public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.ViewHolder> 
         JSONObject area = areaList.get(position);
 
         holder.locationName.setText(area.optString("location", "Unknown Location"));
-        holder.scannedDate.setText(area.optString("scannedDate", "No Date Available"));
+
+        String scannedDate = area.optString("scannedDate", "").trim();
+        if (scannedDate.equals("") || scannedDate.equalsIgnoreCase("null")) {
+            holder.scannedDate.setText("Unscanned");
+        } else {
+            holder.scannedDate.setText(scannedDate);
+        }
+
         holder.itemCount.setText("Count: " + area.optInt("count", 0));
     }
+
+
 
     @Override
     public int getItemCount() {
