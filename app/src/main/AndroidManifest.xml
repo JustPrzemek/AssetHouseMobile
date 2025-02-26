@@ -25,6 +25,7 @@
             android:name=".TestActivity"
             android:exported="false" />
         <activity android:name=".AreasActivity" />
+        <activity android:name=".AreaDetailsActivity"/>
 
         <activity
             android:name=".RoomsActivity"

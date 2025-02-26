@@ -1,5 +1,6 @@
 package com.zebra.rfid.demo.sdksample;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +13,15 @@ import org.json.JSONObject;
 public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.ViewHolder> {
 
     private List<JSONObject> areaList;
+    private OnAreaClickListener listener;
 
-    public AreasAdapter(List<JSONObject> areaList) {
+    public interface OnAreaClickListener {
+        void onAreaClick(String areaName);
+    }
+
+    public AreasAdapter(List<JSONObject> areaList, OnAreaClickListener listener) {
         this.areaList = areaList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -27,26 +34,27 @@ public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         JSONObject area = areaList.get(position);
+        String location = area.optString("location", "Unknown Location");
 
-        holder.locationName.setText(area.optString("location", "Unknown Location"));
+        holder.locationName.setText(location);
 
         String scannedDate = area.optString("scannedDate", "").trim();
-        if (scannedDate.equals("") || scannedDate.equalsIgnoreCase("null")) {
-            holder.scannedDate.setText("Unscanned");
-        } else {
-            holder.scannedDate.setText(scannedDate);
-        }
+        holder.scannedDate.setText(scannedDate.isEmpty() || scannedDate.equalsIgnoreCase("null") ? "Unscanned" : scannedDate);
 
         holder.itemCount.setText("Count: " + area.optInt("count", 0));
+
+        // Click event
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onAreaClick(location);
+            }
+        });
     }
-
-
 
     @Override
     public int getItemCount() {
         return areaList.size();
     }
-
     public void updateAreas(List<JSONObject> newAreas) {
         this.areaList = newAreas;
         notifyDataSetChanged();

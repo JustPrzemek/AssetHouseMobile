@@ -23,6 +23,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import android.content.Intent;
 
 public class AreasActivity extends AppCompatActivity {
 
@@ -52,7 +53,11 @@ public class AreasActivity extends AppCompatActivity {
         searchButton = findViewById(R.id.searchButton);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AreasAdapter(new ArrayList<>());
+        adapter = new AreasAdapter(new ArrayList<>(), areaName -> {
+            Intent intent = new Intent(AreasActivity.this, AreaDetailsActivity.class);
+            intent.putExtra("AREA_NAME", areaName);
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
 
         fetchAreas();
