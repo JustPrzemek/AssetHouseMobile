@@ -4,48 +4,53 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.List;
+import org.json.JSONObject;
 
-public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.AreaViewHolder> {
+public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.ViewHolder> {
 
-    private List<String> areas;
+    private List<JSONObject> areaList;
 
-    public AreasAdapter(List<String> areas) {
-        this.areas = areas;
+    public AreasAdapter(List<JSONObject> areaList) {
+        this.areaList = areaList;
     }
 
     @NonNull
     @Override
-    public AreaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_area, parent, false);
-        return new AreaViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AreaViewHolder holder, int position) {
-        holder.areaTextView.setText(areas.get(position));
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        JSONObject area = areaList.get(position);
+
+        holder.locationName.setText(area.optString("location", "Unknown Location"));
+        holder.scannedDate.setText(area.optString("scannedDate", "No Date Available"));
+        holder.itemCount.setText("Count: " + area.optInt("count", 0));
     }
 
     @Override
     public int getItemCount() {
-        return areas.size();
+        return areaList.size();
     }
 
-    public void updateAreas(List<String> newAreas) {
-        this.areas = newAreas;
+    public void updateAreas(List<JSONObject> newAreas) {
+        this.areaList = newAreas;
         notifyDataSetChanged();
     }
 
-    public static class AreaViewHolder extends RecyclerView.ViewHolder {
-        TextView areaTextView;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView locationName, scannedDate, itemCount;
 
-        public AreaViewHolder(@NonNull View itemView) {
+        public ViewHolder(View itemView) {
             super(itemView);
-            areaTextView = itemView.findViewById(R.id.areaTextView);
+            locationName = itemView.findViewById(R.id.locationName);
+            scannedDate = itemView.findViewById(R.id.scannedDate);
+            itemCount = itemView.findViewById(R.id.itemCount);
         }
     }
 }
