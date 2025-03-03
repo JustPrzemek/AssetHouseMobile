@@ -1,4 +1,6 @@
 package com.zebra.rfid.demo.sdksample;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,7 +35,8 @@ public class AreasActivity extends AppCompatActivity {
     private LinearLayout buttonLayout;
     private Button btnPrevious, btnNext, searchButton, resetButton;
     private EditText searchInput;
-    private static final String BASE_URL = "http://192.168.88.18:8080/rfidentity";
+    private String BASE_URL;
+
 
     private int currentPage = 0;
     private int totalPages = 1;
@@ -41,6 +44,9 @@ public class AreasActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
+        BASE_URL = preferences.getString("BASE_URL", "http://192.168.88.18:8080/rfidentity");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_areas);
 
@@ -52,6 +58,7 @@ public class AreasActivity extends AppCompatActivity {
         searchInput = findViewById(R.id.searchInput);
         searchButton = findViewById(R.id.searchButton);
         resetButton = findViewById(R.id.resetButton);
+
 
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -87,6 +94,7 @@ public class AreasActivity extends AppCompatActivity {
                 fetchAreas();
             }
         });
+
     }
 
     private void fetchAreas() {
@@ -151,7 +159,6 @@ public class AreasActivity extends AppCompatActivity {
                 adapter.updateAreas(areas);
             }
 
-            // ✅ Update button states
             btnPrevious.setEnabled(currentPage > 0);
             btnNext.setEnabled(currentPage < totalPages - 1);
         }
