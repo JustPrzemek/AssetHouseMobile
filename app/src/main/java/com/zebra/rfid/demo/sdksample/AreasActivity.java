@@ -23,6 +23,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import android.content.Intent;
 
 public class AreasActivity extends AppCompatActivity {
 
@@ -30,7 +31,7 @@ public class AreasActivity extends AppCompatActivity {
     private AreasAdapter adapter;
     private ProgressBar progressBar;
     private LinearLayout buttonLayout;
-    private Button btnPrevious, btnNext, searchButton;
+    private Button btnPrevious, btnNext, searchButton, resetButton;
     private EditText searchInput;
     private static final String BASE_URL = "http://192.168.88.18:8080/rfidentity";
 
@@ -50,9 +51,15 @@ public class AreasActivity extends AppCompatActivity {
         btnNext = findViewById(R.id.nextButton);
         searchInput = findViewById(R.id.searchInput);
         searchButton = findViewById(R.id.searchButton);
+        resetButton = findViewById(R.id.resetButton);
+
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AreasAdapter(new ArrayList<>());
+        adapter = new AreasAdapter(new ArrayList<>(), areaName -> {
+            Intent intent = new Intent(AreasActivity.this, AreaDetailsActivity.class);
+            intent.putExtra("AREA_NAME", areaName);
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
 
         fetchAreas();
@@ -62,7 +69,11 @@ public class AreasActivity extends AppCompatActivity {
             currentPage = 0;
             new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
         });
-
+        resetButton.setOnClickListener(v -> {
+            currentSearchQuery = "";
+            currentPage = 0;
+            new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
+        });
         btnNext.setOnClickListener(v -> {
             if (currentPage < totalPages - 1) {
                 currentPage++;
