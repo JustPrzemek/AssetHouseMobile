@@ -1,6 +1,8 @@
 package com.zebra.rfid.demo.sdksample;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,13 +29,16 @@ public class AreaDetailsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private AssetsAdapter adapter;
+    private String BASE_URL;
 
-    private static final String BASE_URL = "http://192.168.88.18:8080/rfidentity";
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_area_details);
+        SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
+        BASE_URL = preferences.getString("BASE_URL", "http://192.168.88.18:8080/rfidentity");
 
         locationNameText = findViewById(R.id.locationName);
         recyclerView = findViewById(R.id.recyclerView);
