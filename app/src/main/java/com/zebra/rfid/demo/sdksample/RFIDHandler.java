@@ -1,5 +1,6 @@
 package com.zebra.rfid.demo.sdksample;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.TextView;
@@ -52,7 +53,9 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     private RFIDReader reader;
     TextView textView;
     private EventHandler eventHandler;
-    private TestActivity context;
+//    private TestActivity context;
+
+    private ResponseHandlerInterface context;
     private SDKHandler sdkHandler;
     private ArrayList<DCSScannerInfo> scannerList;
     private int scannerID;
@@ -67,15 +70,14 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     String readerName = "RFD4031-G10B700-US";
     String RFD8500 = "RFD8500161755230D5038";
 
-//    void onCreate(MainActivity activity) {
-//        context = activity;
-//        textView = activity.statusTextViewRFID;
-//        scannerList = new ArrayList<>();
-//        InitSDK();
-//    }
-    void onCreate(TestActivity activity) {
+    void onCreate(ResponseHandlerInterface activity) {
         context = activity;
-        textView = activity.statusTextViewRFID;
+        if (activity instanceof TestActivity) {
+            textView = ((TestActivity) activity).statusTextViewRFID;
+        } else if (activity instanceof AreaDetailsActivity) {
+            textView = ((AreaDetailsActivity) activity).findViewById(R.id.textViewStatusrfid);
+        }
+
         scannerList = new ArrayList<>();
         InitSDK();
     }
@@ -720,7 +722,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
         protected Void doInBackground(Void... voids) {
             Log.d(TAG, "CreateInstanceTask");
             try {
-                readers = new Readers(context, ENUM_TRANSPORT.SERVICE_USB);
+                readers = new Readers((Context) context, ENUM_TRANSPORT.SERVICE_USB);
                 availableRFIDReaderList = readers.GetAvailableRFIDReaderList();
                 if(availableRFIDReaderList.isEmpty()) {
                     Log.d(TAG, "Reader not available in SERVICE_USB Transport trying with BLUETOOTH transport");
@@ -977,7 +979,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     public void setupScannerSDK(){
         if (sdkHandler == null)
         {
-            sdkHandler = new SDKHandler(context);
+            sdkHandler = new SDKHandler((Context) context);
             //For cdc device
             DCSSDKDefs.DCSSDK_RESULT result = sdkHandler.dcssdkSetOperationalMode(DCSSDKDefs.DCSSDK_MODE.DCSSDK_OPMODE_USB_CDC);
 

@@ -1,5 +1,6 @@
 package com.zebra.rfid.demo.sdksample;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,18 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         holder.description.setText(asset.optString("description", "No Description"));
 //        holder.inventoryStatus.setText(asset.optString("inventoryStatus", "No Status"));
 //        holder.commentCount.setText("Comments: " + asset.optInt("commentCount", 0));
+
+        String status = asset.optString("status", "UNKNOWN");
+
+        if (status.equals("SCANNED")) {
+            holder.itemView.setBackgroundColor(Color.GREEN);
+        } else if (status.equals("NEW_SCANNED")) {
+            holder.itemView.setBackgroundColor(Color.YELLOW);
+        } else if (status.equals("NOT_SCANNED")) {
+            holder.itemView.setBackgroundColor(Color.RED);
+        } else {
+            holder.itemView.setBackgroundColor(Color.WHITE);
+        }
     }
 
     @Override

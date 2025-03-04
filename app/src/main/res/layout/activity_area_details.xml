@@ -6,6 +6,14 @@
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/textViewStatusrfid"
+        android:layout_width="wrap_content"
+        android:layout_height="22dp"
+        android:padding="10dp"
+        android:text="RFID Status"
+        android:textSize="16sp" />
+
+    <TextView
         android:id="@+id/locationName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -52,6 +60,13 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingTop="10dp"/>
+        android:layout_height="510dp"
+        android:paddingTop="10dp" />
+
+    <Button
+        android:id="@+id/sendButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Send" />
+
 </LinearLayout>
