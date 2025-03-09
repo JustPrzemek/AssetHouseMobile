@@ -13,10 +13,13 @@ import java.util.List;
 public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder> {
 
     private List<JSONObject> assetList;
+    private List<JSONObject> scannedAssetsList;
 
-    public AssetsAdapter(List<JSONObject> assetList) {
+    public AssetsAdapter(List<JSONObject> assetList, List<JSONObject> scannedAssetsList) {
         this.assetList = assetList;
+        this.scannedAssetsList = scannedAssetsList;
     }
+
 
     @NonNull
     @Override
@@ -27,33 +30,42 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        JSONObject asset = assetList.get(position);
 
-        holder.assetId.setText(asset.optString("assetId", "N/A"));
-        holder.description.setText(asset.optString("description", "No Description"));
-//        holder.inventoryStatus.setText(asset.optString("inventoryStatus", "No Status"));
-//        holder.commentCount.setText("Comments: " + asset.optInt("commentCount", 0));
+        JSONObject asset;
 
-        String status = asset.optString("status", "UNKNOWN");
+        if (position < assetList.size()) {
+            asset = assetList.get(position);
+        } else {
+            asset = scannedAssetsList.get(position - assetList.size());
+        }
 
-        if (status.equals("SCANNED")) {
+        String status = asset.optString("status", "UNSCANNED");
+
+        if (status.equals("OK")) {
             holder.itemView.setBackgroundColor(Color.GREEN);
-        } else if (status.equals("NEW_SCANNED")) {
+        } else if (status.equals("NEW")) {
             holder.itemView.setBackgroundColor(Color.YELLOW);
-        } else if (status.equals("NOT_SCANNED")) {
+        } else if (status.equals("MISSING")) {
             holder.itemView.setBackgroundColor(Color.RED);
         } else {
             holder.itemView.setBackgroundColor(Color.WHITE);
         }
+
+        holder.assetId.setText(asset.optString("assetId", "N/A"));
+        holder.description.setText(asset.optString("description", "No Description"));
     }
 
     @Override
     public int getItemCount() {
-        return assetList.size();
+        return assetList.size() + scannedAssetsList.size();
     }
 
-    public void updateAssets(List<JSONObject> newAssets) {
-        this.assetList = newAssets;
+    public void updateAssets(List<JSONObject> newAssets, List<JSONObject> newscannedAssets) {
+        this.assetList.clear();
+        this.scannedAssetsList.clear();
+//        this.assetList = newAssets;
+        this.assetList.addAll(newAssets);
+        this.scannedAssetsList.addAll(newscannedAssets);
         notifyDataSetChanged();
     }
 

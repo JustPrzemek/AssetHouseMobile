@@ -1171,13 +1171,24 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
             StringBuilder output = new StringBuilder();
 
             for (int i = 0; i < hexStr.length(); i += 2) {
-                String str = hexStr.substring(i, i + 2);
-                int decimal = Integer.parseInt(str, 16);
-                output.append((char) decimal);
+                String str = hexStr.substring(i, Math.min(i + 2, hexStr.length()));
+                try {
+                    int decimal = Integer.parseInt(str, 16);
+                    output.append((char) decimal);
+                } catch (NumberFormatException e) {
+                    Log.e("RFID", "Błąd konwersji HEX na ASCII: " + str);
+                }
             }
+
             String cleaned = output.toString().replaceAll("[^0-9-]", "");
 
-            return cleaned.replaceAll("^(\\d+)-?(\\d?).*$", "$1-$2");
+//            if (cleaned.startsWith("-") || cleaned.matches("^\\d{1,3}$") || cleaned.length() < 5)
+            if (!cleaned.matches("^\\d+-\\d+$") || cleaned.length() < 5) {
+                Log.e("RFID", "Odrzucono błędny kod RFID: " + cleaned);
+                return "";
+            }
+
+            return cleaned;
         }
 
 

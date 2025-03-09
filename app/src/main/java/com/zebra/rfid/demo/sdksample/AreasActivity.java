@@ -33,7 +33,7 @@ public class AreasActivity extends AppCompatActivity {
     private LinearLayout buttonLayout;
     private Button btnPrevious, btnNext, searchButton, resetButton;
     private EditText searchInput;
-    private static final String BASE_URL = "http://192.168.88.55:8080/rfidentity";
+    private static final String BASE_URL = "http://192.168.0.162:8080/rfidentity";
     private int currentPage = 0;
     private int totalPages = 1;
     private String currentSearchQuery = "";

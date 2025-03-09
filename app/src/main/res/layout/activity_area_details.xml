@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:weightSum="10">
 
     <TextView
         android:id="@+id/textViewStatusrfid"
         android:layout_width="wrap_content"
-        android:layout_height="22dp"
-        android:padding="10dp"
+        android:layout_height="0dp"
         android:text="RFID Status"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        tools:ignore="Suspicious0dp" />
 
     <TextView
         android:id="@+id/locationName"
@@ -60,13 +62,20 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="510dp"
-        android:paddingTop="10dp" />
+        android:layout_height="0dp"
+        android:layout_weight="9"
+        android:paddingTop="10dp"
+        android:scrollbars="vertical"/>
 
     <Button
-        android:id="@+id/sendButton"
+        android:id="@+id/saveButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Send" />
+        android:layout_height="30dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/teal_700"
+        android:text="SAVE"
+        android:textColor="@android:color/white" />
+
 
 </LinearLayout>

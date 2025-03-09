@@ -21,6 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -34,11 +35,12 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private AssetsAdapter adapter;
-    private Button sendButton;
+    private Button saveButton;
     private RFIDHandler rfidHandler;
     private Set<String> scannedTags = new HashSet<>();
     private List<JSONObject> assetsList = new ArrayList<>();
-    private static final String BASE_URL = "http://192.168.88.55:8080/rfidentity";
+    private List<JSONObject> scannedAssetsList = new ArrayList<>();
+    private static final String BASE_URL = "http://192.168.0.162:8080/rfidentity";
     TextView statusTextViewRFID;
 
     @Override
@@ -49,13 +51,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         locationNameText = findViewById(R.id.locationName);
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
-        sendButton = findViewById(R.id.sendButton);
-
         statusTextViewRFID = findViewById(R.id.textViewStatusrfid);
+        saveButton =  findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(v -> saveAssetsToBackend());
 
+        assetsList = new ArrayList<>();
+        scannedAssetsList = new ArrayList<>();
 
+        adapter = new AssetsAdapter(assetsList, scannedAssetsList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AssetsAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
 
         Intent intent = getIntent();
@@ -91,13 +95,73 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         super.onDestroy();
         rfidHandler.onDestroy();
     }
-
     @Override
     public void handleTagdata(TagData[] tagData) {
-        for (TagData tag : tagData) {
-            scannedTags.add(tag.getTagID());
+        try {
+            Set<String> scannedTagIds = new HashSet<>();
+
+            for (TagData tag : tagData) {
+//                ???????????????????
+//                if (tag == null) {
+//                    Log.w("RFID", " Pusty kod RFID - pomijamy.");
+//                    continue;
+//                }
+//                ???????????????????
+                scannedTagIds.add(tag.getTagID());
+            }
+
+            Set<String> assetIdsFromDB = new HashSet<>();
+            for (JSONObject asset : assetsList) {
+                assetIdsFromDB.add(asset.optString("assetId", ""));
+            }
+
+            for (JSONObject asset : assetsList) {
+                try {
+                    String assetId = asset.optString("assetId", "");
+                    String currentStatus = asset.optString("status", "UNSCANNED");
+
+                    if (scannedTagIds.contains(assetId)) {
+                        if (currentStatus.equals("MISSING") || currentStatus.equals("UNSCANNED")) {
+                            asset.put("status", "OK");
+                        }
+                    } else {
+                        if (currentStatus.equals("UNSCANNED")) {
+                            asset.put("status", "MISSING");
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            for (String scannedTag : scannedTagIds) {
+                if (!assetIdsFromDB.contains(scannedTag)) {
+                    boolean alreadyExists = false;
+
+                    for (JSONObject asset : scannedAssetsList) {
+                        if (asset.optString("assetId").equals(scannedTag)) {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadyExists) {
+                        JSONObject newAsset = new JSONObject();
+                        newAsset.put("assetId", scannedTag);
+                        newAsset.put("description", "Newly Scanned Asset");
+                        newAsset.put("status", "NEW");
+                        scannedAssetsList.add(newAsset);
+                    }
+                }
+            }
+
+            runOnUiThread(() -> {
+                adapter.notifyDataSetChanged();
+            });
+
+        } catch (Exception e) {
+            Log.e("RFID", "Error processing RFID tags!", e);
         }
-        runOnUiThread(this::compareScannedWithAssets);
     }
 
     @Override
@@ -130,7 +194,6 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             progressBar.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
         }
-
         @Override
         protected List<JSONObject> doInBackground(String... params) {
             List<JSONObject> assets = new ArrayList<>();
@@ -151,19 +214,24 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                     }
                     reader.close();
 
+                    Log.d("API_RESPONSE", "backend response: " + response.toString());
+
                     JSONObject jsonResponse = new JSONObject(response.toString());
                     JSONArray content = jsonResponse.getJSONArray("content");
 
                     for (int i = 0; i < content.length(); i++) {
+                        JSONObject asset = content.getJSONObject(i);
+                        Log.d("ASSET_FETCH", "asset fetch: " + asset.toString());
                         assets.add(content.getJSONObject(i));
                     }
+                } else {
+                    Log.e("API_RESPONSE", "error fetching data, response: " + responseCode);
                 }
             } catch (Exception e) {
                 Log.e("FetchAssets", "Error fetching assets", e);
             }
             return assets;
         }
-
         @Override
         protected void onPostExecute(List<JSONObject> assets) {
             super.onPostExecute(assets);
@@ -173,57 +241,101 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             if (assets.isEmpty()) {
                 Toast.makeText(AreaDetailsActivity.this, "No assets found", Toast.LENGTH_SHORT).show();
             } else {
-                adapter.updateAssets(assets);
+                assetsList = new ArrayList<>(assets);
+
+                for (JSONObject asset : assetsList) {
+                    try {
+
+                        String status = asset.has("inventoryStatus") && !asset.isNull("inventoryStatus")
+                                ? asset.getString("inventoryStatus").toUpperCase()
+                                : "UNSCANNED";
+
+                        asset.put("status", status);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                adapter.updateAssets(assetsList, scannedAssetsList);
             }
         }
     }
+    private void saveAssetsToBackend() {
+        try {
 
-    private void compareScannedWithAssets() {
-        Set<String> assetIdsFromDB = new HashSet<>();
-        List<JSONObject> updatedAssets = new ArrayList<>();
+            JSONObject requestBody = new JSONObject();
+            requestBody.put("location", locationNameText.getText().toString());
+            requestBody.put("user", "USER");
 
-        for (JSONObject asset : assetsList) {
-            String assetId = asset.optString("assetId", "");
-            assetIdsFromDB.add(assetId);
+            JSONArray assetsArray = new JSONArray();
 
-            if (scannedTags.contains(assetId)) {
-                try {
-                    asset.put("status", "SCANNED");
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+            for (JSONObject asset : assetsList) {
+                JSONObject assetObj = new JSONObject();
+                assetObj.put("assetId", asset.optString("assetId", ""));
+                assetObj.put("status", asset.optString("status", "UNSCANNED"));
+                assetObj.put("comment", "");
+                assetsArray.put(assetObj);
+            }
+
+            for (JSONObject scannedAsset : scannedAssetsList) {
+                String scannedId = scannedAsset.optString("assetId", "");
+
+                boolean alreadyExists = false;
+                for (JSONObject asset : assetsList) {
+                    if (asset.optString("assetId", "").equals(scannedId)) {
+                        alreadyExists = true;
+                        break;
+                    }
                 }
-            } else {
-                try {
-                    asset.put("status", "NOT_SCANNED");
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+
+                if (!alreadyExists) {
+                    JSONObject assetObj = new JSONObject();
+                    assetObj.put("assetId", scannedId);
+                    assetObj.put("status", scannedAsset.optString("status", "NEW"));
+                    assetObj.put("comment", "");
+                    assetsArray.put(assetObj);
                 }
             }
-            updatedAssets.add(asset);
-        }
 
-        for (String scannedTag : scannedTags) {
-            if (!assetIdsFromDB.contains(scannedTag)) {
-                JSONObject newAsset = new JSONObject();
+            requestBody.put("assets", assetsArray);
+
+            sendPostRequest("http://192.168.0.162:8080/rfidentity/api/mobile/updateOutcome", requestBody.toString());
+
+        } catch (JSONException e) {
+            Log.e("SAVE", "Error creating JSON!", e);
+        }
+    }
+    private void sendPostRequest(String urlString, String jsonBody) {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
                 try {
-                    newAsset.put("assetId", scannedTag);
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                    URL url = new URL(urlString);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setDoOutput(true);
+
+                    OutputStream os = connection.getOutputStream();
+                    os.write(jsonBody.getBytes("UTF-8"));
+                    os.close();
+
+                    int responseCode = connection.getResponseCode();
+                    if (responseCode == 204) {
+                        return "Data saved successfully!";
+                    } else {
+                        return "Error: " + responseCode;
+                    }
+                } catch (Exception e) {
+                    return "Connection error!";
                 }
-                try {
-                    newAsset.put("description", "Newly Scanned Asset");
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    newAsset.put("status", "NEW_SCANNED");
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-                updatedAssets.add(newAsset);
             }
-        }
 
-        adapter.updateAssets(updatedAssets);
+            @Override
+            protected void onPostExecute(String result) {
+                Toast.makeText(AreaDetailsActivity.this, result, Toast.LENGTH_SHORT).show();
+            }
+        }.execute();
     }
 }
