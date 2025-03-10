@@ -1,5 +1,6 @@
 package com.zebra.rfid.demo.sdksample;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +13,13 @@ import java.util.List;
 public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder> {
 
     private List<JSONObject> assetList;
+    private List<JSONObject> scannedAssetsList;
 
-    public AssetsAdapter(List<JSONObject> assetList) {
+    public AssetsAdapter(List<JSONObject> assetList, List<JSONObject> scannedAssetsList) {
         this.assetList = assetList;
+        this.scannedAssetsList = scannedAssetsList;
     }
+
 
     @NonNull
     @Override
@@ -26,21 +30,42 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        JSONObject asset = assetList.get(position);
+
+        JSONObject asset;
+
+        if (position < assetList.size()) {
+            asset = assetList.get(position);
+        } else {
+            asset = scannedAssetsList.get(position - assetList.size());
+        }
+
+        String status = asset.optString("status", "UNSCANNED");
+
+        if (status.equals("OK")) {
+            holder.itemView.setBackgroundResource(R.drawable.rounded_item_bg);
+        } else if (status.equals("NEW")) {
+            holder.itemView.setBackgroundResource(R.drawable.rounded_item_bg_new);
+        } else if (status.equals("MISSING")) {
+            holder.itemView.setBackgroundResource(R.drawable.rounded_item_bg_missing);
+        } else {
+            holder.itemView.setBackgroundColor(Color.WHITE);
+        }
 
         holder.assetId.setText(asset.optString("assetId", "N/A"));
         holder.description.setText(asset.optString("description", "No Description"));
-//        holder.inventoryStatus.setText(asset.optString("inventoryStatus", "No Status"));
-//        holder.commentCount.setText("Comments: " + asset.optInt("commentCount", 0));
     }
 
     @Override
     public int getItemCount() {
-        return assetList.size();
+        return assetList.size() + scannedAssetsList.size();
     }
 
-    public void updateAssets(List<JSONObject> newAssets) {
-        this.assetList = newAssets;
+    public void updateAssets(List<JSONObject> newAssets, List<JSONObject> newscannedAssets) {
+        this.assetList.clear();
+        this.scannedAssetsList.clear();
+//        this.assetList = newAssets;
+        this.assetList.addAll(newAssets);
+        this.scannedAssetsList.addAll(newscannedAssets);
         notifyDataSetChanged();
     }
 

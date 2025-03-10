@@ -38,8 +38,6 @@ public class AreasActivity extends AppCompatActivity {
     private Button btnPrevious, btnNext, searchButton, resetButton;
     private EditText searchInput;
     private String BASE_URL;
-
-
     private int currentPage = 0;
     private int totalPages = 1;
     private String currentSearchQuery = "";
@@ -99,9 +97,13 @@ public class AreasActivity extends AppCompatActivity {
         });
     }
 
-    private void connectionChoose(){}
     private void fetchAreas() {
         new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fetchAreas();
     }
 
     private class FetchAreasTask extends AsyncTask<String, Void, List<JSONObject>> {

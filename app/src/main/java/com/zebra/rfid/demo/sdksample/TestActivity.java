@@ -69,9 +69,7 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
         for (int index = 0; index < tagData.length; index++) {
             String tagId = tagData[index].getTagID();
 //            int rssi = tagData[index].getPeakRSSI();
-
             sb.append(tagId + "\n");
-//            sb.append("TAG ID: " + tagId + "  |  RSSI: " + rssi + "\n");
         }
         runOnUiThread(new Runnable() {
             @Override
