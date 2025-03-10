@@ -31,7 +31,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandler.ResponseHandlerInterface {
+
 
     private TextView locationNameText;
     private RecyclerView recyclerView;
@@ -204,7 +207,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             try {
                 String urlString = params[0] + "/api/locations/insideLocation?location=" + params[1] + "&page=0&size=1000&sort=inventoryStatus";
                 URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                //highly retarded resolution
+                HttpURLConnection connection = null;
+                if (params[0].contains("https")) {
+                    connection = (HttpsURLConnection) url.openConnection();
+                } else if (params[0].contains("http")) {
+                    connection = (HttpURLConnection) url.openConnection();
+                }
+
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Content-Type", "application/json");
 
