@@ -1,6 +1,8 @@
 package com.zebra.rfid.demo.sdksample;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,13 +42,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private Set<String> scannedTags = new HashSet<>();
     private List<JSONObject> assetsList = new ArrayList<>();
     private List<JSONObject> scannedAssetsList = new ArrayList<>();
-    private static final String BASE_URL = "http://192.168.0.162:8080/rfidentity";
+    private String BASE_URL;
     TextView statusTextViewRFID;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_area_details);
+        SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
+        BASE_URL = preferences.getString("BASE_URL", "http://192.168.88.18:8080/rfidentity");
 
         locationNameText = findViewById(R.id.locationName);
         recyclerView = findViewById(R.id.recyclerView);
@@ -194,6 +198,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             progressBar.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
         }
+
         @Override
         protected List<JSONObject> doInBackground(String... params) {
             List<JSONObject> assets = new ArrayList<>();
@@ -232,6 +237,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             }
             return assets;
         }
+
         @Override
         protected void onPostExecute(List<JSONObject> assets) {
             super.onPostExecute(assets);
