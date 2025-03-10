@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import android.content.Intent;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class AreasActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
@@ -50,6 +52,9 @@ public class AreasActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_areas);
 
+        // Trust all certificates
+        SSLHelper.trustAllCertificates();
+
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         buttonLayout = findViewById(R.id.buttonLayout);
@@ -58,8 +63,6 @@ public class AreasActivity extends AppCompatActivity {
         searchInput = findViewById(R.id.searchInput);
         searchButton = findViewById(R.id.searchButton);
         resetButton = findViewById(R.id.resetButton);
-
-
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AreasAdapter(new ArrayList<>(), areaName -> {
@@ -94,8 +97,8 @@ public class AreasActivity extends AppCompatActivity {
                 fetchAreas();
             }
         });
-
     }
+
 
     private void fetchAreas() {
         new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
@@ -116,7 +119,7 @@ public class AreasActivity extends AppCompatActivity {
             try {
                 String urlString = params[0] + "/api/dashboard/listLocationsWithAssets?location=" + params[2] + "&page=" + params[1] + "&size=10&sort=location";
                 URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Content-Type", "application/json");
 
