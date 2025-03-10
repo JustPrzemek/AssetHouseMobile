@@ -99,7 +99,7 @@ public class AreasActivity extends AppCompatActivity {
         });
     }
 
-
+    private void connectionChoose(){}
     private void fetchAreas() {
         new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
     }
@@ -119,7 +119,15 @@ public class AreasActivity extends AppCompatActivity {
             try {
                 String urlString = params[0] + "/api/dashboard/listLocationsWithAssets?location=" + params[2] + "&page=" + params[1] + "&size=10&sort=location";
                 URL url = new URL(urlString);
-                HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+
+                //highly retarded resolution
+                HttpURLConnection connection = null;
+                if (params[0].contains("https")) {
+                    connection = (HttpsURLConnection) url.openConnection();
+                } else if (params[0].contains("http")) {
+                    connection = (HttpURLConnection) url.openConnection();
+                }
+
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Content-Type", "application/json");
 

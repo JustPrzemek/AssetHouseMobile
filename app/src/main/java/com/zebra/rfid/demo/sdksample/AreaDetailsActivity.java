@@ -23,6 +23,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class AreaDetailsActivity extends AppCompatActivity {
 
     private TextView locationNameText;
@@ -74,7 +76,15 @@ public class AreaDetailsActivity extends AppCompatActivity {
             try {
                 String urlString = params[0] + "/api/locations/insideLocation?location=" + params[1] + "&page=0&size=1000&sort=inventoryStatus";
                 URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                //highly retarded resolution
+                HttpURLConnection connection = null;
+                if (params[0].contains("https")) {
+                    connection = (HttpsURLConnection) url.openConnection();
+                } else if (params[0].contains("http")) {
+                    connection = (HttpURLConnection) url.openConnection();
+                }
+
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Content-Type", "application/json");
 
