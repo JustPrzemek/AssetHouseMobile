@@ -42,11 +42,11 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         String status = asset.optString("status", "UNSCANNED");
 
         if (status.equals("OK")) {
-            holder.itemView.setBackgroundColor(Color.GREEN);
+            holder.itemView.setBackgroundResource(R.drawable.rounded_item_bg);
         } else if (status.equals("NEW")) {
-            holder.itemView.setBackgroundColor(Color.YELLOW);
+            holder.itemView.setBackgroundResource(R.drawable.rounded_item_bg_new);
         } else if (status.equals("MISSING")) {
-            holder.itemView.setBackgroundColor(Color.RED);
+            holder.itemView.setBackgroundResource(R.drawable.rounded_item_bg_missing);
         } else {
             holder.itemView.setBackgroundColor(Color.WHITE);
         }

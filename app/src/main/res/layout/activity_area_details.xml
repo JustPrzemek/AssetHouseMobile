@@ -36,7 +36,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="@android:color/darker_gray">
+        android:radius="25dp"
+        android:background="@drawable/rounded_bg">
 
         <TextView
             android:layout_width="0dp"
@@ -65,7 +66,8 @@
         android:layout_height="0dp"
         android:layout_weight="9"
         android:paddingTop="10dp"
-        android:scrollbars="vertical"/>
+        android:scrollbars="vertical"
+        />
 
     <Button
         android:id="@+id/saveButton"
@@ -73,7 +75,6 @@
         android:layout_height="30dp"
         android:layout_weight="1"
         android:layout_marginTop="10dp"
-        android:backgroundTint="@color/teal_700"
         android:text="SAVE"
         android:textColor="@android:color/white" />
 

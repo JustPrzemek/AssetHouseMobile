@@ -105,13 +105,12 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             Set<String> scannedTagIds = new HashSet<>();
 
             for (TagData tag : tagData) {
-//                ???????????????????
-//                if (tag == null) {
-//                    Log.w("RFID", " Pusty kod RFID - pomijamy.");
-//                    continue;
-//                }
-//                ???????????????????
-                scannedTagIds.add(tag.getTagID());
+                String tagId = tag.getTagID();
+                if (tagId == null || tagId.trim().isEmpty()) {
+                    Log.w("RFID", " Pusty kod RFID - pomijamy.");
+                    continue;
+                }
+                scannedTagIds.add(tagId);
             }
 
             Set<String> assetIdsFromDB = new HashSet<>();
@@ -306,7 +305,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
             requestBody.put("assets", assetsArray);
 
-            sendPostRequest("http://192.168.0.162:8080/rfidentity/api/mobile/updateOutcome", requestBody.toString());
+            sendPostRequest(BASE_URL + "/api/mobile/updateOutcome", requestBody.toString());
 
         } catch (JSONException e) {
             Log.e("SAVE", "Error creating JSON!", e);

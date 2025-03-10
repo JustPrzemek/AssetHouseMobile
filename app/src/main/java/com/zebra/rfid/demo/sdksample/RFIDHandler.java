@@ -1050,7 +1050,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
                     scannerList = null;
                 }
                 reader.disconnect();
-                context.sendToast("Disconnecting reader");
+                //context.sendToast("Disconnecting reader");
                 //reader = null;
             }
         } catch (InvalidUsageException e) {
@@ -1182,7 +1182,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
 
             String cleaned = output.toString().replaceAll("[^0-9-]", "");
 
-//            if (cleaned.startsWith("-") || cleaned.matches("^\\d{1,3}$") || cleaned.length() < 5)
+//          if (cleaned.startsWith("-") || cleaned.matches("^\\d{1,3}$") || cleaned.length() < 5)
             if (!cleaned.matches("^\\d+-\\d+$") || cleaned.length() < 5) {
                 Log.e("RFID", "Odrzucono błędny kod RFID: " + cleaned);
                 return "";
