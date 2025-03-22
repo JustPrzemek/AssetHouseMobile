@@ -46,6 +46,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private List<JSONObject> assetsList = new ArrayList<>();
     private List<JSONObject> scannedAssetsList = new ArrayList<>();
     private String BASE_URL;
+    private int newAssetsCount = 0;
+    private int missingToOkCount = 0;
     TextView statusTextViewRFID;
 
     @Override
@@ -129,6 +131,9 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                     if (scannedTagIds.contains(assetId)) {
                         if (currentStatus.equals("MISSING") || currentStatus.equals("UNSCANNED")) {
                             asset.put("status", "OK");
+                            if (currentStatus.equals("MISSING")) {
+                                missingToOkCount++;
+                            }
                         }
                     } else {
                         if (currentStatus.equals("UNSCANNED")) {
@@ -157,6 +162,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                         newAsset.put("description", "Newly Scanned Asset");
                         newAsset.put("status", "NEW");
                         scannedAssetsList.add(newAsset);
+                        newAssetsCount++;
                     }
                 }
             }
@@ -174,9 +180,14 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     public void handleTriggerPress(boolean pressed) {
         if (pressed) {
             scannedTags.clear();
+            newAssetsCount = 0;
+            missingToOkCount = 0;
             rfidHandler.performInventory();
+
         } else {
             rfidHandler.stopInventory();
+            String message = "Found assets:" + "\nNew: " + newAssetsCount + "\nOK: " + missingToOkCount;
+            runOnUiThread(() -> Toast.makeText(AreaDetailsActivity.this, message, Toast.LENGTH_LONG).show());
         }
     }
 
@@ -351,6 +362,10 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             @Override
             protected void onPostExecute(String result) {
                 Toast.makeText(AreaDetailsActivity.this, result, Toast.LENGTH_SHORT).show();
+
+                if (result.equals("Data saved successfully!")) {
+                    new FetchAssetsTask().execute(BASE_URL, locationNameText.getText().toString());
+                }
             }
         }.execute();
     }
