@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -73,6 +74,11 @@ public class AreasActivity extends AppCompatActivity {
         fetchAreas();
 
         searchButton.setOnClickListener(v -> {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+            }
+
             currentSearchQuery = searchInput.getText().toString();
             currentPage = 0;
             new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
