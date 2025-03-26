@@ -1,5 +1,6 @@
-package com.zebra.rfid.demo.sdksample;
+package com.zebra.rfid.assethouse;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -48,6 +49,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private String BASE_URL;
     private int newAssetsCount = 0;
     private int missingToOkCount = 0;
+    private Toast statusToast;
     TextView statusTextViewRFID;
 
     @Override
@@ -187,7 +189,13 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         } else {
             rfidHandler.stopInventory();
             String message = "Found assets:" + "\nNew: " + newAssetsCount + "\nOK: " + missingToOkCount;
-            runOnUiThread(() -> Toast.makeText(AreaDetailsActivity.this, message, Toast.LENGTH_LONG).show());
+            runOnUiThread(() -> {
+                if (statusToast != null) {
+                    statusToast.cancel();
+                }
+                statusToast = Toast.makeText(AreaDetailsActivity.this, message, Toast.LENGTH_LONG);
+                statusToast.show();
+            });
         }
     }
 
@@ -198,7 +206,13 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
     @Override
     public void sendToast(String val) {
-        runOnUiThread(() -> Toast.makeText(AreaDetailsActivity.this, val, Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> {
+            if (statusToast != null) {
+                statusToast.cancel();
+            }
+            statusToast = Toast.makeText(AreaDetailsActivity.this, val, Toast.LENGTH_SHORT);
+            statusToast.show();
+        });
     }
 
     //END OF RFID HANDLING
@@ -349,10 +363,11 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                     os.close();
 
                     int responseCode = connection.getResponseCode();
+                    String responseString = connection.getResponseMessage();
                     if (responseCode == 204) {
                         return "Data saved successfully!";
                     } else {
-                        return "Error: " + responseCode;
+                        return "Error: " + responseString;
                     }
                 } catch (Exception e) {
                     return "Connection error!";
@@ -361,6 +376,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
             @Override
             protected void onPostExecute(String result) {
+
                 Toast.makeText(AreaDetailsActivity.this, result, Toast.LENGTH_SHORT).show();
 
                 if (result.equals("Data saved successfully!")) {

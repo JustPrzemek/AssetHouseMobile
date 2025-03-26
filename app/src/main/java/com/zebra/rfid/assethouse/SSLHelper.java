@@ -1,4 +1,4 @@
-package com.zebra.rfid.demo.sdksample;
+package com.zebra.rfid.assethouse;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;

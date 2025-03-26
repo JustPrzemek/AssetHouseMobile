@@ -1,4 +1,4 @@
-package com.zebra.rfid.demo.sdksample.services;
+package com.zebra.rfid.assethouse.services;
 
 import android.util.Log;
 

@@ -1,6 +1,5 @@
-package com.zebra.rfid.demo.sdksample;
+package com.zebra.rfid.assethouse;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

@@ -1,4 +1,4 @@
-package com.zebra.rfid.demo.sdksample;
+package com.zebra.rfid.assethouse;
 
 import android.Manifest;
 import android.content.Intent;

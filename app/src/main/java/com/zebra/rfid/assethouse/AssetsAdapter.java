@@ -1,4 +1,4 @@
-package com.zebra.rfid.demo.sdksample;
+package com.zebra.rfid.assethouse;
 
 import android.graphics.Color;
 import android.view.LayoutInflater;

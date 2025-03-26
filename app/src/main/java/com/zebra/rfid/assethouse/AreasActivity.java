@@ -1,4 +1,4 @@
-package com.zebra.rfid.demo.sdksample;
+package com.zebra.rfid.assethouse;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -80,13 +80,21 @@ public class AreasActivity extends AppCompatActivity {
             }
 
             currentSearchQuery = searchInput.getText().toString();
+            searchInput.clearFocus();
             currentPage = 0;
             new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
         });
         resetButton.setOnClickListener(v -> {
             currentSearchQuery = "";
             currentPage = 0;
+            searchInput.setText("");
             new FetchAreasTask().execute(BASE_URL, String.valueOf(currentPage), currentSearchQuery);
+
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+            }
+            searchInput.clearFocus();
         });
         btnNext.setOnClickListener(v -> {
             if (currentPage < totalPages - 1) {

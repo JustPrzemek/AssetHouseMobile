@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.zebra.rfid.demo.sdksample">
+    package="com.zebra.rfid.assethouse">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -22,15 +22,15 @@
         android:theme="@style/Theme.AppTheme">
 
         <activity
-            android:name=".TestActivity"
+            android:name="com.zebra.rfid.assethouse.TestActivity"
             android:exported="false" />
-        <activity android:name=".AreasActivity" />
-        <activity android:name=".AreaDetailsActivity"/>
-        <activity android:name=".SettingsActivity" />
+        <activity android:name="com.zebra.rfid.assethouse.AreasActivity" />
+        <activity android:name="com.zebra.rfid.assethouse.AreaDetailsActivity"/>
+        <activity android:name="com.zebra.rfid.assethouse.SettingsActivity" />
 
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.zebra.rfid.assethouse.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:screenOrientation="portrait">
