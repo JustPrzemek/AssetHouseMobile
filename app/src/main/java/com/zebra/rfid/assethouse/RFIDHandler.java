@@ -42,6 +42,8 @@ import com.zebra.scannercontrol.IDcsSdkApiDelegate;
 import com.zebra.scannercontrol.SDKHandler;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler {
@@ -53,8 +55,6 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     private RFIDReader reader;
     TextView textView;
     private EventHandler eventHandler;
-//    private TestActivity context;
-
     private ResponseHandlerInterface context;
     private SDKHandler sdkHandler;
     private ArrayList<DCSScannerInfo> scannerList;
@@ -1179,19 +1179,19 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
                     Log.e("RFID", "Błąd konwersji HEX na ASCII: " + str);
                 }
             }
-
-            String cleaned = output.toString().replaceAll("[^0-9-]", "");
-
-//          if (cleaned.startsWith("-") || cleaned.matches("^\\d{1,3}$") || cleaned.length() < 5)
-            if (!cleaned.matches("^\\d+-\\d+$") || cleaned.length() < 5) {
-                Log.e("RFID", "Odrzucono błędny kod RFID: " + cleaned);
-                return "";
-            }
-
-            return cleaned;
+            return filterTagId(output.toString());
         }
 
+        private String filterTagId(String rawTagId) {
+            Pattern pattern = Pattern.compile("^(\\d+)-(\\d+)");
+            Matcher matcher = pattern.matcher(rawTagId);
 
+            if (matcher.find()) {
+                return matcher.group(1) + "-" + matcher.group(2);
+            }
+
+            return "";
+        }
 
         // Status Event Notification
         public void eventStatusNotify(RfidStatusEvents rfidStatusEvents) {

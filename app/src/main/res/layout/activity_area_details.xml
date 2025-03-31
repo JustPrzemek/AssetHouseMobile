@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:padding="10dp"
     android:weightSum="10">
 
     <TextView
@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:text="RFID Status"
-        android:textSize="16sp"
+        android:textSize="0dp"
         tools:ignore="Suspicious0dp" />
 
     <TextView
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:radius="25dp"
+        android:radius="4dp"
         android:background="@drawable/rounded_bg">
 
         <TextView
@@ -46,18 +46,22 @@
             android:text="Asset ID"
             android:textStyle="bold"
             android:textSize="16sp"
+            android:layout_gravity="center"
             android:textColor="@android:color/white"
             android:padding="5dp"/>
 
         <TextView
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="wrap_content"
+            android:id="@+id/toggleText"
+            android:layout_width="120dp"
+            android:layout_height="40dp"
             android:text="Description"
-            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@color/white"
             android:textSize="16sp"
-            android:textColor="@android:color/white"
-            android:padding="5dp"/>
+            android:textStyle="bold"
+            android:background="@drawable/toggle_background"
+            android:clickable="true"
+            android:focusable="true"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -65,9 +69,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="9"
-        android:paddingTop="10dp"
-        android:scrollbars="vertical"
-        />
+        android:paddingTop="4dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"/>
 
     <Button
         android:id="@+id/saveButton"

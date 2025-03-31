@@ -1,6 +1,5 @@
 package com.zebra.rfid.assethouse;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +11,8 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -51,6 +52,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private int missingToOkCount = 0;
     private Toast statusToast;
     TextView statusTextViewRFID;
+    private TextView toggleText;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,6 +84,16 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             Toast.makeText(this, "No location provided", Toast.LENGTH_SHORT).show();
             finish();
         }
+
+        toggleText = findViewById(R.id.toggleText);
+        toggleText.setOnClickListener(v -> {
+            if (toggleText.getText().equals("Description")) {
+                toggleText.setText("Placement");
+            } else {
+                toggleText.setText("Description");
+            }
+            adapter.setShowPlacementView(!toggleText.getText().equals("Description"));
+        });
 
         rfidHandler = new RFIDHandler();
         rfidHandler.onCreate(this);

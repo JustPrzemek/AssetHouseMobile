@@ -1,10 +1,13 @@
 package com.zebra.rfid.assethouse;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -42,6 +45,8 @@ public class AreasActivity extends AppCompatActivity {
     private int currentPage = 0;
     private int totalPages = 1;
     private String currentSearchQuery = "";
+    private ViewGroup rootView;
+    private boolean isKeyboardVisible = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,6 +67,7 @@ public class AreasActivity extends AppCompatActivity {
         searchInput = findViewById(R.id.searchInput);
         searchButton = findViewById(R.id.searchButton);
         resetButton = findViewById(R.id.resetButton);
+        rootView = findViewById(android.R.id.content);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AreasAdapter(new ArrayList<>(), areaName -> {
@@ -109,6 +115,38 @@ public class AreasActivity extends AppCompatActivity {
                 fetchAreas();
             }
         });
+
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                Rect r = new Rect();
+                rootView.getWindowVisibleDisplayFrame(r);
+                int screenHeight = rootView.getRootView().getHeight();
+                int keypadHeight = screenHeight - r.bottom;
+
+                boolean isKeyboardNowVisible = keypadHeight > screenHeight * 0.15;
+
+                if (isKeyboardNowVisible != isKeyboardVisible) {
+                    isKeyboardVisible = isKeyboardNowVisible;
+                    if (isKeyboardVisible) {
+                        buttonLayout.setVisibility(View.GONE);
+                    } else {
+                        if (progressBar.getVisibility() != View.VISIBLE) {
+                            buttonLayout.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            }
+        });
+
+        searchInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                buttonLayout.setVisibility(View.GONE);
+            } else if (progressBar.getVisibility() != View.VISIBLE) {
+                buttonLayout.setVisibility(View.VISIBLE);
+            }
+        });
+
     }
 
     private void fetchAreas() {

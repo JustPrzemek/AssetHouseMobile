@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_margin="5dp"
-    android:padding="16dp"
+    android:padding="10dp"
     android:gravity="center"
     tools:context=".MainActivity">
 

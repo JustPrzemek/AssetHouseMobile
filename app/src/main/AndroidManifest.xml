@@ -24,7 +24,9 @@
         <activity
             android:name="com.zebra.rfid.assethouse.TestActivity"
             android:exported="false" />
-        <activity android:name="com.zebra.rfid.assethouse.AreasActivity" />
+        <activity
+            android:name="com.zebra.rfid.assethouse.AreasActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
         <activity android:name="com.zebra.rfid.assethouse.AreaDetailsActivity"/>
         <activity android:name="com.zebra.rfid.assethouse.SettingsActivity" />
 
