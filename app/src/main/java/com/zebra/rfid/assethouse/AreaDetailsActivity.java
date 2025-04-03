@@ -11,7 +11,6 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import java.net.URLEncoder;
 import javax.net.ssl.HttpsURLConnection;
 
 public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandler.ResponseHandlerInterface {
@@ -242,10 +242,10 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         protected List<JSONObject> doInBackground(String... params) {
             List<JSONObject> assets = new ArrayList<>();
             try {
-                String urlString = params[0] + "/api/locations/insideLocation?location=" + params[1] + "&page=0&size=1000&sort=inventoryStatus";
+                String encodedLocation = URLEncoder.encode(params[1], "UTF-8");
+                String urlString = params[0] + "/api/locations/insideLocation?location=" + encodedLocation + "&page=0&size=1000&sort=inventoryStatus";
                 URL url = new URL(urlString);
 
-                //highly retarded resolution
                 HttpURLConnection connection = null;
                 if (params[0].contains("https")) {
                     connection = (HttpsURLConnection) url.openConnection();

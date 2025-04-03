@@ -42,7 +42,12 @@ public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.ViewHolder> 
 
         holder.itemCount.setText("Count: " + area.optInt("count", 0));
 
-        // Click event
+        if (!scannedDate.isEmpty() && !scannedDate.equalsIgnoreCase("null")) {
+            holder.itemView.setBackgroundResource(R.drawable.rectangle_background_scanned);
+        } else {
+            holder.itemView.setBackgroundResource(R.drawable.rectangle_background);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onAreaClick(location);

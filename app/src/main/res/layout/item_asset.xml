@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="48dp"
     android:orientation="horizontal"
-    android:paddingHorizontal="8dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
     android:paddingVertical="4dp"
     android:background="@drawable/ripple_effect"
     android:layout_marginBottom="1dp">
@@ -16,8 +17,7 @@
         android:text="Asset ID"
         android:textSize="14sp"
         android:textColor="@android:color/black"
-        android:gravity="center_vertical"
-        android:paddingEnd="8dp"/>
+        android:gravity="start|center_vertical"/>
 
     <View
         android:layout_width="1dp"
@@ -32,8 +32,9 @@
         android:text="Description"
         android:textSize="14sp"
         android:textColor="@android:color/black"
-        android:gravity="center_vertical"
+        android:gravity="start|center_vertical"
         android:paddingStart="8dp"
         android:maxLines="1"
-        android:ellipsize="end"/>
+        android:ellipsize="end"
+        android:singleLine="true"/>
 </LinearLayout>

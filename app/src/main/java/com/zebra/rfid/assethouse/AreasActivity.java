@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import android.content.Intent;
 
+import java.net.URLEncoder;
 import javax.net.ssl.HttpsURLConnection;
 
 public class AreasActivity extends AppCompatActivity {
@@ -106,6 +107,7 @@ public class AreasActivity extends AppCompatActivity {
             if (currentPage < totalPages - 1) {
                 currentPage++;
                 fetchAreas();
+                recyclerView.scrollToPosition(0);
             }
         });
 
@@ -113,6 +115,7 @@ public class AreasActivity extends AppCompatActivity {
             if (currentPage > 0) {
                 currentPage--;
                 fetchAreas();
+                recyclerView.scrollToPosition(0);
             }
         });
 
@@ -171,10 +174,10 @@ public class AreasActivity extends AppCompatActivity {
         protected List<JSONObject> doInBackground(String... params) {
             List<JSONObject> areas = new ArrayList<>();
             try {
-                String urlString = params[0] + "/api/dashboard/listLocationsWithAssets?location=" + params[2] + "&page=" + params[1] + "&size=10&sort=location";
+                String encodedLocation = URLEncoder.encode(params[2], "UTF-8");
+                String urlString = params[0] + "/api/dashboard/listLocationsWithAssets?location=" + encodedLocation + "&page=" + params[1] + "&size=10&sort=location";
                 URL url = new URL(urlString);
 
-                //highly retarded resolution
                 HttpURLConnection connection = null;
                 if (params[0].contains("https")) {
                     connection = (HttpsURLConnection) url.openConnection();

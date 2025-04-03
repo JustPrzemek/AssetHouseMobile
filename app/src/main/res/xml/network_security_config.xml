@@ -3,6 +3,7 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">192.168.88.18</domain>
         <domain includeSubdomains="true">192.168.88.55</domain>
+        <domain includeSubdomains="true">192.168.0.191</domain>
         <domain includeSubdomains="true">rze-assethouse-t</domain>
         <domain includeSubdomains="true">rapl4038</domain>
 

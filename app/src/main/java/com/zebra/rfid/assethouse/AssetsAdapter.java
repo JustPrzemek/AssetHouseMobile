@@ -2,7 +2,9 @@ package com.zebra.rfid.assethouse;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.Layout;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,15 +51,17 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
                 assetList.get(position) :
                 scannedAssetsList.get(position - assetList.size());
 
-        String status = asset.optString("status", "UNSCANNED");
+        String status = asset.optString("status", "UNSCANNED").toUpperCase();
 
-        int bgResource = R.drawable.rounded_item_bg;
+        int bgResource;
         if (status.equals("NEW")) {
             bgResource = R.drawable.rounded_item_bg_new;
         } else if (status.equals("MISSING")) {
             bgResource = R.drawable.rounded_item_bg_missing;
-        } else if (!status.equals("OK")) {
-            holder.itemView.setBackgroundColor(Color.WHITE);
+        } else if (status.equals("OK")) {
+            bgResource = R.drawable.rounded_item_bg_ok;
+        } else {
+            bgResource = R.drawable.rounded_item_bg;
         }
         holder.itemView.setBackgroundResource(bgResource);
 
@@ -67,9 +71,16 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         String displayText = prepareDisplayText(asset, status);
         holder.description.setText(displayText);
 
-        setupTextView(holder.description, displayText);
+        holder.description.post(() -> {
+            if (holder.description.getLineCount() > 0) {
+                holder.description.setEllipsize(TextUtils.TruncateAt.END);
+            }
+        });
 
-
+        holder.description.setMaxLines(1);
+        holder.description.setEllipsize(TextUtils.TruncateAt.END);
+        holder.description.setText(displayText);
+        setupTextView(holder.description, displayText, asset, status);
         holder.itemView.setSelected(position == selectedPosition);
     }
 
@@ -89,21 +100,55 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         return "null".equals(text) ? "" : text;
     }
 
-    private void setupTextView(TextView textView, String text) {
+    private void setupTextView(TextView textView, String text, JSONObject asset, String status) {
         textView.setMaxLines(1);
-        textView.setEllipsize(text.length() > 30 ? TextUtils.TruncateAt.END : null);
-        textView.setClickable(text.length() > 30);
+        textView.setEllipsize(TextUtils.TruncateAt.END);
+        textView.setText(text);
 
-        textView.setOnClickListener(v -> {
-            if (text.length() > 30) {
-                showFullTextDialog(v.getContext(), text);
-            }
+        textView.post(() -> {
+            boolean isTextTruncated = isTextTruncated(textView);
+            textView.setClickable(isTextTruncated);
+
+            textView.setOnClickListener(v -> {
+                if (isTextTruncated) {
+                    showFullTextDialog(v.getContext(), text, asset, status);
+                }
+            });
         });
     }
 
-    private void showFullTextDialog(Context context, String text) {
+    private boolean isTextTruncated(TextView textView) {
+        Layout layout = textView.getLayout();
+        if (layout != null) {
+            int lines = layout.getLineCount();
+            if (lines > 0) {
+                int ellipsisCount = layout.getEllipsisCount(lines - 1);
+                return ellipsisCount > 0;
+            }
+        }
+        return false;
+    }
+
+    private void showFullTextDialog(Context context, String text, JSONObject asset, String status) {
+        Log.d("DIALOG_DEBUG", "Showing dialog for: " + text);
+        Log.d("DIALOG_DEBUG", "Status: " + status + ", PlacementView: " + showPlacementView);
+
+        String dialogTitle;
+
+        if (showPlacementView) {
+            if (status.equals("NEW")) {
+                dialogTitle = "Expected Location";
+            } else if (status.equals("MISSING")) {
+                dialogTitle = "System Name";
+            } else {
+                dialogTitle = "Description";
+            }
+        } else {
+            dialogTitle = "Description";
+        }
+
         new AlertDialog.Builder(context)
-                .setTitle("Full Content")
+                .setTitle(dialogTitle)
                 .setMessage(text)
                 .setPositiveButton("OK", null)
                 .show();
