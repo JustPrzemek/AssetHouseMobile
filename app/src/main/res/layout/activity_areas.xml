@@ -38,6 +38,8 @@
                 android:layout_marginEnd="8dp"
                 android:text="RESET"
                 android:textAllCaps="true"
+                android:gravity="center"
+                android:includeFontPadding="false"
                 android:background="@drawable/button_background"/>
 
             <Button
@@ -46,6 +48,8 @@
                 android:layout_height="36dp"
                 android:text="SEARCH"
                 android:textAllCaps="true"
+                android:gravity="center"
+                android:includeFontPadding="false"
                 android:background="@drawable/button_background"/>
         </LinearLayout>
     </LinearLayout>
