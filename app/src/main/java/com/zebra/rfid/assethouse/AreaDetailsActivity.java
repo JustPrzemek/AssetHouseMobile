@@ -27,9 +27,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import java.net.URLEncoder;
@@ -97,7 +100,6 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
         rfidHandler = new RFIDHandler();
         rfidHandler.onCreate(this);
-
     }
     //RFID HANDLING HERE
     @Override
