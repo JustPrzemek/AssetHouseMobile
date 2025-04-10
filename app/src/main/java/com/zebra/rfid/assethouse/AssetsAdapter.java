@@ -37,17 +37,18 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         JSONObject asset = getItem(position);
+        if (asset == null) return;
+
         String status = asset.optString("status", "UNSCANNED").toUpperCase();
-
-
         holder.itemView.setBackgroundResource(getBackgroundResource(status));
 
         holder.assetId.setText(asset.optString("assetId", "N/A"));
         String displayText = prepareDisplayText(asset, status);
         holder.description.setText(displayText);
 
-        setupTextViewBehavior(holder.description, displayText, asset, status);
+        setupTextViewBehavior(holder.description, displayText, status);
     }
+
     private int getBackgroundResource(String status) {
         switch (status) {
             case "NEW": return R.drawable.rounded_item_bg_new;
@@ -62,7 +63,7 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         if (showPlacementView) {
             if (status.equals("NEW")) {
                 text = asset.optString("expectedLocation", "No location");
-            } else if (status.equals("MISSING")) {
+            } else if (status.equals("MISSING") || status.equals("OK") || status.equals("UNSCANNED")) {
                 text = asset.optString("systemName", "No system");
             } else {
                 text = asset.optString("description", "No Description");
@@ -73,7 +74,7 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         return "null".equals(text) ? "" : text;
     }
 
-    private void setupTextViewBehavior(TextView textView, String text, JSONObject asset, String status) {
+    private void setupTextViewBehavior(TextView textView, String text, String status) {
         textView.setMaxLines(1);
         textView.setEllipsize(TextUtils.TruncateAt.END);
         textView.setText(text);
@@ -99,7 +100,7 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
     private void showFullTextDialog(Context context, String text, String status) {
         String dialogTitle = showPlacementView ?
                 (status.equals("NEW") ? "Expected Location" :
-                        status.equals("MISSING") ? "System Name" : "Description")
+                        (status.equals("MISSING") || status.equals("OK") || status.equals("UNSCANNED")) ? "System Name" : "Description")
                 : "Description";
 
         new AlertDialog.Builder(context)
