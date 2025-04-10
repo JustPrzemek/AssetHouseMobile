@@ -3,26 +3,35 @@ package com.zebra.rfid.assethouse;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import android.view.View;
 
-import com.zebra.rfid.assethouse.databinding.ActivityMainBinding;
+/**
+ * AssetHouse app to connect to the reader,to do inventory and barcode scan
+ * App can also set antenna settings and singulation control
+ * */
 
 public class MainActivity extends AppCompatActivity {
-
-    private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        binding.btnTest.setOnClickListener(v ->
-                startActivity(new Intent(this, TestActivity.class)));
-
-        binding.btnAreas.setOnClickListener(v ->
-                startActivity(new Intent(this, AreasActivity.class)));
-
-        binding.btnSettings.setOnClickListener(v ->
-                startActivity(new Intent(this, SettingsActivity.class)));
+        setContentView(R.layout.activity_main);
     }
+
+    public void openTest(View view) {
+        Intent intent = new Intent(this, TestActivity.class);
+        startActivity(intent);
+    }
+
+
+    public void openAreas(View view){
+        Intent intent = new Intent(this, AreasActivity.class);
+        startActivity(intent);
+    }
+
+    public void openSettings(View view){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
 }

@@ -52,7 +52,7 @@ public class AreasActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
-        BASE_URL = preferences.getString("BASE_URL", "https://rze-assethouse-t:8334/rfidentity");
+        BASE_URL = preferences.getString("BASE_URL", "http://192.168.88.18:8080/rfidentity");
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_areas);
@@ -222,7 +222,6 @@ public class AreasActivity extends AppCompatActivity {
             buttonLayout.setVisibility(View.VISIBLE);
 
             if (areas.isEmpty()) {
-                adapter.updateAreas(areas);
                 Toast.makeText(AreasActivity.this, "No areas found", Toast.LENGTH_SHORT).show();
             } else {
                 adapter.updateAreas(areas);

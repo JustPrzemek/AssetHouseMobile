@@ -42,7 +42,6 @@ import com.zebra.scannercontrol.IDcsSdkApiDelegate;
 import com.zebra.scannercontrol.SDKHandler;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1153,22 +1152,18 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
         public void eventReadNotify(RfidReadEvents e) {
             TagData[] myTags = reader.Actions.getReadTags(100);
             if (myTags != null) {
-                List<TagData> filteredTags = new ArrayList<>();
-
-                for (TagData tag : myTags) {
-                    String tagIdHex = tag.getTagID();
+                for (int index = 0; index < myTags.length; index++) {
+                    //  Log.d(TAG, "Tag ID " + myTags[index].getTagID());
+//                    Log.d(TAG, "Tag ID" + myTags[index].getTagID() +"RSSI value "+ myTags[index].getPeakRSSI());
+//                    Log.d(TAG, "RSSI value "+ myTags[index].getPeakRSSI());
+                    String tagIdHex = myTags[index].getTagID();
                     String tagIdDecoded = hexToAscii(tagIdHex);
-
-                    if (tagIdDecoded == null) continue;
-
                     Log.d(TAG, "Tag ID (HEX): " + tagIdHex + " | Dekodowany: " + tagIdDecoded);
-                    tag.setTagID(tagIdDecoded);
-                    filteredTags.add(tag);
-                }
+                    myTags[index].setTagID(tagIdDecoded);
+                    /* To get the RSSI value*/   //   Log.d(TAG, "RSSI value "+ myTags[index].getPeakRSSI());
 
-                if (!filteredTags.isEmpty()) {
-                    new AsyncDataUpdate().execute(filteredTags.toArray(new TagData[0]));
                 }
+                new AsyncDataUpdate().execute(myTags);
             }
         }
 
@@ -1192,13 +1187,10 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
             Matcher matcher = pattern.matcher(rawTagId);
 
             if (matcher.find()) {
-                String filteredId = matcher.group(1) + "-" + matcher.group(2);
-                if ("97104-0".equals(filteredId)) {
-                    return null;
-                }
-                return filteredId;
+                return matcher.group(1) + "-" + matcher.group(2);
             }
-            return null;
+
+            return "";
         }
 
         // Status Event Notification

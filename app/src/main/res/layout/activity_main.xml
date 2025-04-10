@@ -1,62 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/activity_padding">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_margin="5dp"
+    android:padding="10dp"
+    android:gravity="center"
+    tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/welcomeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/app_name_cabs"
-        android:textSize="@dimen/title_text_size"
+        android:gravity="center"
+        android:text="ASSETHOUSE"
+        android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btn_test"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:layout_marginTop="@dimen/title_margin_top"/>
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp"/>
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btn_test"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/btn_test"
-        app:layout_constraintTop_toBottomOf="@id/welcomeText"
-        app:layout_constraintBottom_toTopOf="@id/btn_areas"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/button_margin_top"/>
+        android:text="TEST"
+        android:onClick="openTest"
+        android:layout_below="@id/welcomeText"
+        android:layout_marginTop="16dp"/>
 
-    <com.google.android.material.button.MaterialButton
+
+
+    <Button
         android:id="@+id/btn_areas"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_test"
-        app:layout_constraintTop_toBottomOf="@id/btn_test"
-        app:layout_constraintBottom_toTopOf="@id/btn_settings"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/button_margin_top2"
-        android:text="@string/btn_areas"
-        />
+        android:layout_marginTop="20dp"
+        android:onClick="openAreas"
+        android:text="AREAS" />
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btn_settings"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_areas"
-        android:layout_marginTop="@dimen/button_margin_top2"
-        app:layout_constraintTop_toBottomOf="@id/btn_areas"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/btn_settings" />
+        android:layout_marginTop="20dp"
+        android:onClick="openSettings"
+        android:text="Settings" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+</RelativeLayout>
