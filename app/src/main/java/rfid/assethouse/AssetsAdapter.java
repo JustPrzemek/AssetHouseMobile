@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package rfid.assethouse;
 
 import android.content.Context;
 import android.text.Layout;
@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+
 import org.json.JSONObject;
 import java.util.List;
 

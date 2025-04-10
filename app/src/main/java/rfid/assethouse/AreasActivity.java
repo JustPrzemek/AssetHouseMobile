@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package rfid.assethouse;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
@@ -52,7 +52,7 @@ public class AreasActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
-        BASE_URL = preferences.getString("BASE_URL", "https://rze-assethouse-t:8334/rfidentity");
+        BASE_URL = preferences.getString("BASE_URL", "https://rze-assethouse-t:8443/rfidentity");
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_areas);

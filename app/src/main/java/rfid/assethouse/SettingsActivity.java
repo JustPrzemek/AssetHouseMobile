@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package rfid.assethouse;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -24,7 +24,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Load the saved BASE_URL if available
         SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
-        String savedUrl = preferences.getString("BASE_URL", "https://rze-assethouse-t:8334/rfidentity");
+        String savedUrl = preferences.getString("BASE_URL", "https://rze-assethouse-t:8443/rfidentity");
         editBaseUrl.setText(savedUrl);
 
         btnSave.setOnClickListener(v -> {
