@@ -62,7 +62,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_area_details);
         SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
-        BASE_URL = preferences.getString("BASE_URL", "https://rze-assethouse-t:8334/rfidentity");
+        BASE_URL = preferences.getString("BASE_URL", "http://192.168.88.18:8080/rfidentity");
 
         locationNameText = findViewById(R.id.locationName);
         recyclerView = findViewById(R.id.recyclerView);
@@ -127,8 +127,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
             for (TagData tag : tagData) {
                 String tagId = tag.getTagID();
-                if (tagId.isEmpty()) {
-                    Log.w("RFID", "Pusty kod RFID - pomijamy.");
+                if (tagId == null || tagId.trim().isEmpty()) {
+                    Log.w("RFID", " Pusty kod RFID - pomijamy.");
                     continue;
                 }
                 scannedTagIds.add(tagId);

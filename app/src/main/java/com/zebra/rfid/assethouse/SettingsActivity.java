@@ -24,7 +24,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Load the saved BASE_URL if available
         SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
-        String savedUrl = preferences.getString("BASE_URL", "https://rze-assethouse-t:8334/rfidentity");
+        String savedUrl = preferences.getString("BASE_URL", "http://192.168.88.18:8080/rfidentity");
         editBaseUrl.setText(savedUrl);
 
         btnSave.setOnClickListener(v -> {
@@ -43,7 +43,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
         Button btnRestoreDefault = findViewById(R.id.btnRestoreDefault);
         btnRestoreDefault.setOnClickListener(v -> {
-            String defaultUrl = "https://rze-assethouse-t:8334/rfidentity"; // Default URL
+            String defaultUrl = "http://192.168.88.18:8080/rfidentity"; // Default URL
 
             // Set the default URL in EditText
             editBaseUrl.setText(defaultUrl);
