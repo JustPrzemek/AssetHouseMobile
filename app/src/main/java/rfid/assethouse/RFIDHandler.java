@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package rfid.assethouse;
 
 import android.content.Context;
 import android.os.AsyncTask;

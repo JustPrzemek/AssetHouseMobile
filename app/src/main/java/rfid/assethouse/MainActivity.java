@@ -1,10 +1,11 @@
-package com.zebra.rfid.assethouse;
+package rfid.assethouse;
 
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.zebra.rfid.assethouse.databinding.ActivityMainBinding;
+import rfid.assethouse.databinding.ActivityMainBinding;
+
 
 public class MainActivity extends AppCompatActivity {
 

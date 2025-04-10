@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package rfid.assethouse;
 
 import android.content.Context;
 import android.content.Intent;
@@ -27,12 +27,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import java.net.URLEncoder;
@@ -62,7 +59,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_area_details);
         SharedPreferences preferences = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
-        BASE_URL = preferences.getString("BASE_URL", "https://rze-assethouse-t:8334/rfidentity");
+        BASE_URL = preferences.getString("BASE_URL", "https://rze-assethouse-t:8443/rfidentity");
 
         locationNameText = findViewById(R.id.locationName);
         recyclerView = findViewById(R.id.recyclerView);
