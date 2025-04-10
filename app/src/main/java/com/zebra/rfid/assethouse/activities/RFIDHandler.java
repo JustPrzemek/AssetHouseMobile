@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package com.zebra.rfid.assethouse.activities;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -35,6 +35,7 @@ import com.zebra.rfid.api3.TRUNCATE_ACTION;
 import com.zebra.rfid.api3.TagAccess;
 import com.zebra.rfid.api3.TagData;
 import com.zebra.rfid.api3.TriggerInfo;
+import com.zebra.rfid.assethouse.R;
 import com.zebra.scannercontrol.DCSSDKDefs;
 import com.zebra.scannercontrol.DCSScannerInfo;
 import com.zebra.scannercontrol.FirmwareUpdateEvent;
@@ -1193,7 +1194,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
 
             if (matcher.find()) {
                 String filteredId = matcher.group(1) + "-" + matcher.group(2);
-                if ("97104-0".equals(filteredId)) {
+                if ("82442-0".equals(filteredId)) {
                     return null;
                 }
                 return filteredId;

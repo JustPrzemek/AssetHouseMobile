@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package com.zebra.rfid.assethouse.adapters;
 
 import android.content.Context;
 import android.text.Layout;
@@ -10,18 +10,23 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.zebra.rfid.assethouse.R;
+import com.zebra.rfid.assethouse.models.Asset;
+
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder> {
-
-    private List<JSONObject> assetList;
-    private List<JSONObject> scannedAssetsList;
+    private List<Asset> assetList;
+    private List<Asset> scannedAssetsList;
     private boolean showPlacementView = false;
 
-    public AssetsAdapter(List<JSONObject> assetList, List<JSONObject> scannedAssetsList) {
-        this.assetList = assetList;
-        this.scannedAssetsList = scannedAssetsList;
+    public AssetsAdapter(List<Asset> assetList, List<Asset> scannedAssetsList) {
+        this.assetList = new ArrayList<>(assetList);
+        this.scannedAssetsList = new ArrayList<>(scannedAssetsList);
     }
 
     @NonNull
@@ -29,24 +34,29 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_asset, parent, false);
-
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-
-        JSONObject asset = getItem(position);
+        Asset asset = getItem(position);
         if (asset == null) return;
 
-        String status = asset.optString("status", "UNSCANNED").toUpperCase();
-        holder.itemView.setBackgroundResource(getBackgroundResource(status));
+        holder.itemView.setBackgroundResource(getBackgroundResource(asset.getStatus()));
+        holder.assetId.setText(asset.getAssetId());
 
-        holder.assetId.setText(asset.optString("assetId", "N/A"));
-        String displayText = prepareDisplayText(asset, status);
+        String displayText = showPlacementView ?
+                getPlacementText(asset) :
+                asset.getDescription();
+
         holder.description.setText(displayText);
+        setupTextViewBehavior(holder.description, displayText, asset.getStatus());
+    }
 
-        setupTextViewBehavior(holder.description, displayText, status);
+    private String getPlacementText(Asset asset) {
+        if (asset.isNew()) return asset.getExpectedLocation();
+        if (asset.isMissing() || asset.isOk() || asset.isUnscanned()) return asset.getSystemName();
+        return asset.getDescription();
     }
 
     private int getBackgroundResource(String status) {
@@ -56,22 +66,6 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
             case "OK": return R.drawable.rounded_item_bg_ok;
             default: return R.drawable.rounded_item_bg;
         }
-    }
-
-    private String prepareDisplayText(JSONObject asset, String status) {
-        String text;
-        if (showPlacementView) {
-            if (status.equals("NEW")) {
-                text = asset.optString("expectedLocation", "No location");
-            } else if (status.equals("MISSING") || status.equals("OK") || status.equals("UNSCANNED")) {
-                text = asset.optString("systemName", "No system");
-            } else {
-                text = asset.optString("description", "No Description");
-            }
-        } else {
-            text = asset.optString("description", "No Description");
-        }
-        return "null".equals(text) ? "" : text;
     }
 
     private void setupTextViewBehavior(TextView textView, String text, String status) {
@@ -120,15 +114,13 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         notifyDataSetChanged();
     }
 
-    public void updateAssets(List<JSONObject> newAssets, List<JSONObject> newScannedAssets) {
-        assetList.clear();
-        scannedAssetsList.clear();
-        assetList.addAll(newAssets);
-        scannedAssetsList.addAll(newScannedAssets);
+    public void updateAssets(List<Asset> newAssets, List<Asset> newScannedAssets) {
+        this.assetList = new ArrayList<>(newAssets);
+        this.scannedAssetsList = new ArrayList<>(newScannedAssets);
         notifyDataSetChanged();
     }
 
-    private JSONObject getItem(int position) {
+    private Asset getItem(int position) {
         return position < assetList.size() ?
                 assetList.get(position) :
                 scannedAssetsList.get(position - assetList.size());

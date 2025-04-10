@@ -22,17 +22,17 @@
         android:theme="@style/Theme.AppTheme">
 
         <activity
-            android:name="com.zebra.rfid.assethouse.TestActivity"
+            android:name="com.zebra.rfid.assethouse.activities.TestActivity"
             android:exported="false" />
         <activity
-            android:name="com.zebra.rfid.assethouse.AreasActivity"
+            android:name="com.zebra.rfid.assethouse.activities.AreasActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"/>
-        <activity android:name="com.zebra.rfid.assethouse.AreaDetailsActivity"/>
-        <activity android:name="com.zebra.rfid.assethouse.SettingsActivity" />
+        <activity android:name="com.zebra.rfid.assethouse.activities.AreaDetailsActivity"/>
+        <activity android:name="com.zebra.rfid.assethouse.activities.SettingsActivity" />
 
 
         <activity
-            android:name="com.zebra.rfid.assethouse.MainActivity"
+            android:name="com.zebra.rfid.assethouse.activities.MainActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>

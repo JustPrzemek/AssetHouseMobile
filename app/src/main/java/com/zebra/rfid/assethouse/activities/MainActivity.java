@@ -1,4 +1,4 @@
-package com.zebra.rfid.assethouse;
+package com.zebra.rfid.assethouse.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
