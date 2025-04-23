@@ -1,4 +1,4 @@
-package rfid.assethouse.activities;
+package pl.mtu.assethouse.activities;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -7,8 +7,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import rfid.assethouse.R;
-import rfid.assethouse.utils.SharedPrefsManager;
+import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.utils.SharedPrefsManager;
 
 public class SettingsActivity extends AppCompatActivity {
     private EditText editBaseUrl;

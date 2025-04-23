@@ -1,10 +1,10 @@
-package rfid.assethouse.api;
+package pl.mtu.assethouse.api;
 
 import android.content.Context;
 import android.net.Uri;
 
-import rfid.assethouse.utils.SSLHelper;
-import rfid.assethouse.utils.SharedPrefsManager;
+import pl.mtu.assethouse.utils.SSLHelper;
+import pl.mtu.assethouse.utils.SharedPrefsManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;

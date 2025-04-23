@@ -1,11 +1,11 @@
-package rfid.assethouse.api.service;
+package pl.mtu.assethouse.api.service;
 
 import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
-import rfid.assethouse.api.ApiClient;
-import rfid.assethouse.models.Area;
+import pl.mtu.assethouse.api.ApiClient;
+import pl.mtu.assethouse.models.Area;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

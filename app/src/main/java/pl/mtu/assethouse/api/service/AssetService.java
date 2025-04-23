@@ -1,10 +1,10 @@
-package rfid.assethouse.api.service;
+package pl.mtu.assethouse.api.service;
 
 import android.content.Context;
 
-import rfid.assethouse.api.ApiClient;
-import rfid.assethouse.models.Asset;
-import rfid.assethouse.utils.SharedPrefsManager;
+import pl.mtu.assethouse.api.ApiClient;
+import pl.mtu.assethouse.models.Asset;
+import pl.mtu.assethouse.utils.SharedPrefsManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,6 +47,16 @@ public class AssetService {
     }
 
     public boolean updateAssets(String location, List<Asset> assets, List<Asset> scannedAssets) throws Exception {
+        Set<String> scannedAssetIds = scannedAssets.stream()
+                .map(Asset::getAssetId)
+                .collect(Collectors.toSet());
+
+        for (Asset asset : assets) {
+            if ("UNSCANNED".equals(asset.getStatus()) && !scannedAssetIds.contains(asset.getAssetId())) {
+                asset.setStatus("MISSING");
+            }
+        }
+
         JSONObject requestBody = new JSONObject();
         requestBody.put("location", location);
         requestBody.put("user", "USER");
@@ -58,7 +68,6 @@ public class AssetService {
         requestBody.put("assets", assetsArray);
 
         String response = apiClient.post("/api/mobile/updateOutcome", requestBody.toString());
-
         return response != null || response.isEmpty();
     }
 

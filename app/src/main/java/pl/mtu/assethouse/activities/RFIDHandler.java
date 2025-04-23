@@ -1,4 +1,4 @@
-package rfid.assethouse.activities;
+package pl.mtu.assethouse.activities;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -35,7 +35,7 @@ import com.zebra.rfid.api3.TRUNCATE_ACTION;
 import com.zebra.rfid.api3.TagAccess;
 import com.zebra.rfid.api3.TagData;
 import com.zebra.rfid.api3.TriggerInfo;
-import rfid.assethouse.R;
+import pl.mtu.assethouse.R;
 import com.zebra.scannercontrol.DCSSDKDefs;
 import com.zebra.scannercontrol.DCSScannerInfo;
 import com.zebra.scannercontrol.FirmwareUpdateEvent;
@@ -62,7 +62,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     private ArrayList<DCSScannerInfo> scannerList;
     private int scannerID;
     static MyAsyncTask cmdExecTask = null;
-    private int MAX_POWER = 270;
+    private int MAX_POWER = 297;
     private int DEVICE_STD_MODE = 0;
     private int DEVICE_PREMIUM_PLUS_MODE = 1;
 
@@ -872,6 +872,10 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
             triggerInfo.StartTrigger.setTriggerType(START_TRIGGER_TYPE.START_TRIGGER_TYPE_IMMEDIATE);
             triggerInfo.StopTrigger.setTriggerType(STOP_TRIGGER_TYPE.STOP_TRIGGER_TYPE_IMMEDIATE);
             try {
+//                int[] powerLevels = reader.ReaderCapabilities.getTransmitPowerLevelValues();
+//                for (int power : powerLevels) {
+//                    Log.d(TAG, "Available power level: " + power);
+//                }
                 // receive events from reader
                 if (eventHandler == null)
                     eventHandler = new EventHandler();
@@ -908,75 +912,6 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
             }
         }
     }
-
-
-/*
-
-    void onDestroy() {
-        dispose();
-    }
-
-    String onResume() {
-        return connect();
-    }
-
-    void onPause() {
-        disconnect();
-    }
-*/
-
-/*
-    private synchronized String connect() {
-        Log.d(TAG, "connect");
-        if (reader != null) {
-            try {
-                if (!reader.isConnected()) {
-                    // Establish connection to the RFID Reader
-                    reader.connect();
-                    ConfigureReader();
-
-                    setupScannerSDK();
-                    return "Connected";
-                }
-            } catch (InvalidUsageException e) {
-                //e.printStackTrace();
-            } catch (OperationFailureException e) {
-                //e.printStackTrace();
-                Log.d(TAG, "OperationFailureException " + e.getVendorMessage());
-                return "Connection failed" + e.getVendorMessage() + " " + e.getStatusDescription();
-            }
-        }
-        return "";
-    }
-
-    private void ConfigureReader() {
-        if (reader.isConnected()) {
-            TriggerInfo triggerInfo = new TriggerInfo();
-            triggerInfo.StartTrigger.setTriggerType(START_TRIGGER_TYPE.START_TRIGGER_TYPE_IMMEDIATE);
-            triggerInfo.StopTrigger.setTriggerType(STOP_TRIGGER_TYPE.STOP_TRIGGER_TYPE_IMMEDIATE);
-            try {
-                // receive events from reader
-                if (eventHandler == null)
-                    eventHandler = new EventHandler();
-                reader.Events.addEventsListener(eventHandler);
-                // HH event
-                reader.Events.setHandheldEvent(true);
-                // tag event with tag data
-                reader.Events.setTagReadEvent(true);
-                reader.Events.setAttachTagDataWithReadEvent(false);
-                reader.Events.setReaderDisconnectEvent(true);
-
-                reader.Config.setTriggerMode(ENUM_TRIGGER_MODE.RFID_MODE, false);
-                // set start and stop triggers
-                reader.Config.setStartTrigger(triggerInfo.StartTrigger);
-                reader.Config.setStopTrigger(triggerInfo.StopTrigger);
-
-            } catch (InvalidUsageException | OperationFailureException e) {
-                //e.printStackTrace();
-            }
-        }
-    }
-*/
 
     public void setupScannerSDK(){
         if (sdkHandler == null)
@@ -1185,21 +1120,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
                     Log.e("RFID", "Błąd konwersji HEX na ASCII: " + str);
                 }
             }
-            return filterTagId(output.toString());
-        }
-
-        private String filterTagId(String rawTagId) {
-            Pattern pattern = Pattern.compile("^(\\d+)-(\\d+)");
-            Matcher matcher = pattern.matcher(rawTagId);
-
-            if (matcher.find()) {
-                String filteredId = matcher.group(1) + "-" + matcher.group(2);
-                if ("82442-0".equals(filteredId)) {
-                    return null;
-                }
-                return filteredId;
-            }
-            return null;
+            return output.toString();
         }
 
         // Status Event Notification

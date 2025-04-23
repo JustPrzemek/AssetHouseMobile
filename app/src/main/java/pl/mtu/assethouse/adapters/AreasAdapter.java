@@ -1,4 +1,4 @@
-package rfid.assethouse.adapters;
+package pl.mtu.assethouse.adapters;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,8 +8,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import rfid.assethouse.R;
-import rfid.assethouse.models.Area;
+import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.models.Area;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

@@ -1,4 +1,4 @@
-package rfid.assethouse.utils;
+package pl.mtu.assethouse.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
