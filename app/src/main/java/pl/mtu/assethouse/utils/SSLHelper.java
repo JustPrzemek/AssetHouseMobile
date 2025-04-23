@@ -1,4 +1,4 @@
-package rfid.assethouse.utils;
+package pl.mtu.assethouse.utils;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;

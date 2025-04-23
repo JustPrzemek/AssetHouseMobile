@@ -1,4 +1,5 @@
-package rfid.assethouse.activities;
+package pl.mtu.assethouse.activities;
+
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.AsyncTask;
@@ -24,10 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import android.content.Intent;
 
-import rfid.assethouse.adapters.AreasAdapter;
-import rfid.assethouse.R;
-import rfid.assethouse.api.service.AreaService;
-import rfid.assethouse.models.Area;
+import pl.mtu.assethouse.adapters.AreasAdapter;
+import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.api.service.AreaService;
+import pl.mtu.assethouse.models.Area;
 
 public class AreasActivity extends AppCompatActivity {
 

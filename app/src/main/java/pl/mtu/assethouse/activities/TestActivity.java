@@ -1,4 +1,4 @@
-package rfid.assethouse.activities;
+package pl.mtu.assethouse.activities;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -16,7 +16,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.zebra.rfid.api3.TagData;
-import rfid.assethouse.R;
+import pl.mtu.assethouse.R;
 
 public class TestActivity extends AppCompatActivity implements RFIDHandler.ResponseHandlerInterface {
 

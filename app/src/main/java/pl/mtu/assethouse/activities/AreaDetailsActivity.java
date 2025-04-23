@@ -1,4 +1,4 @@
-package rfid.assethouse.activities;
+package pl.mtu.assethouse.activities;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,14 +14,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.zebra.rfid.api3.TagData;
-import rfid.assethouse.adapters.AssetsAdapter;
-import rfid.assethouse.R;
-import rfid.assethouse.api.service.AssetService;
-import rfid.assethouse.models.Asset;
+import pl.mtu.assethouse.adapters.AssetsAdapter;
+import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.api.service.AssetService;
+import pl.mtu.assethouse.models.Asset;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.stream.Collectors;
@@ -106,10 +107,14 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         Set<String> scannedTagIds = Arrays.stream(tagData)
                 .map(TagData::getTagID)
                 .filter(tagId -> !tagId.isEmpty())
+                .map(this::cleanTagId)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         Set<String> existingAssetIds = assetsList.stream()
                 .map(Asset::getAssetId)
+                .map(this::cleanTagId)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         updateAssetStatuses(scannedTagIds, existingAssetIds);
@@ -118,26 +123,45 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         runOnUiThread(() -> adapter.updateAssets(assetsList, scannedAssetsList));
     }
 
+    private String cleanTagId(String tagId) {
+        if ("82442-0".equals(tagId)) {
+            return null;
+        }
+
+        String cleaned = tagId.split("[^a-zA-Z0-9-]")[0].trim();
+
+        if (cleaned.contains("-")) {
+            if (!cleaned.matches(".*-\\d+.*")) {
+                return null;
+            }
+            return cleaned.replaceAll("^(\\d+-\\d+).*", "$1");
+        }
+        else {
+            String digitsOnly = cleaned.replaceAll("[^0-9]", "");
+            return digitsOnly.length() >= 4 ? digitsOnly : null;
+        }
+    }
+
     private void updateAssetStatuses(Set<String> scannedTagIds, Set<String> existingAssetIds) {
         for (Asset asset : assetsList) {
-            String currentStatus = asset.getStatus();
+            String cleanAssetId = cleanTagId(asset.getAssetId());
+            if (cleanAssetId == null) continue;
 
-            if (scannedTagIds.contains(asset.getAssetId())) {
+            String currentStatus = asset.getStatus();
+            if (scannedTagIds.contains(cleanAssetId)) {
                 if ("MISSING".equals(currentStatus) || "UNSCANNED".equals(currentStatus)) {
                     asset.setStatus("OK");
                     if ("MISSING".equals(currentStatus)) missingToOkCount++;
                 }
-            } else if ("UNSCANNED".equals(currentStatus)) {
-                asset.setStatus("MISSING");
             }
         }
     }
 
     private void addNewAssets(Set<String> scannedTagIds, Set<String> existingAssetIds) {
         for (String scannedTag : scannedTagIds) {
-            if (!existingAssetIds.contains(scannedTag)) {
+            if (scannedTag != null && !existingAssetIds.contains(scannedTag)) {
                 boolean alreadyScanned = scannedAssetsList.stream()
-                        .anyMatch(a -> a.getAssetId().equals(scannedTag));
+                        .anyMatch(a -> scannedTag.equals(cleanTagId(a.getAssetId())));
 
                 if (!alreadyScanned) {
                     Asset newAsset = new Asset();
@@ -163,7 +187,6 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     }
 
     private void resetCounters() {
-        scannedAssetsList.clear();
         newAssetsCount = 0;
         missingToOkCount = 0;
     }
@@ -254,6 +277,12 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     }
 
     private void saveAssets() {
+        missingToOkCount = (int) assetsList.stream()
+                .filter(a -> "MISSING".equals(a.getStatus()))
+                .count();
+
+        newAssetsCount = scannedAssetsList.size();
+
         new SaveAssetsTask().execute();
     }
 

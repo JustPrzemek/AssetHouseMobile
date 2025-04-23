@@ -1,4 +1,4 @@
-package rfid.assethouse.models;
+package pl.mtu.assethouse.models;
 
 import org.json.JSONObject;
 

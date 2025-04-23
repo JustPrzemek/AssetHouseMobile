@@ -1,4 +1,4 @@
-package rfid.assethouse.adapters;
+package pl.mtu.assethouse.adapters;
 
 import android.content.Context;
 import android.text.Layout;
@@ -11,8 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
-import rfid.assethouse.R;
-import rfid.assethouse.models.Asset;
+import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.models.Asset;
 
 import java.util.ArrayList;
 import java.util.List;
