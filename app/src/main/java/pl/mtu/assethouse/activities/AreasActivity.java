@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
@@ -115,12 +117,35 @@ public class AreasActivity extends AppCompatActivity {
                 buttonLayout.setVisibility(View.VISIBLE);
             }
         });
-    }
 
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                final int MAX_LENGTH = 100;
+                if (s.length() > MAX_LENGTH) {
+                    searchInput.setText(s.subSequence(0, MAX_LENGTH));
+                    searchInput.setSelection(MAX_LENGTH);
+                    Toast.makeText(AreasActivity.this, "70 character limit", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
 
     private void handleSearch() {
         hideKeyboard();
-        currentSearchQuery = searchInput.getText().toString();
+        currentSearchQuery = searchInput.getText().toString().trim();
+        final int MAX_SEARCH_LENGTH = 70;
+        if (currentSearchQuery.length() > MAX_SEARCH_LENGTH) {
+            currentSearchQuery = currentSearchQuery.substring(0, MAX_SEARCH_LENGTH);
+            searchInput.setText(currentSearchQuery);
+            Toast.makeText(this, "70 character limit", Toast.LENGTH_SHORT).show();
+        }
         currentPage = 0;
         fetchAreas();
     }

@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.zebra.rfid.api3.TagData;
+
+import org.json.JSONObject;
+
 import pl.mtu.assethouse.adapters.AssetsAdapter;
 import pl.mtu.assethouse.R;
 import pl.mtu.assethouse.api.service.AssetService;
@@ -149,11 +152,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
             String currentStatus = asset.getStatus();
             if (scannedTagIds.contains(cleanAssetId)) {
-                if ("MISSING".equals(currentStatus) || "UNSCANNED".equals(currentStatus)) {
+                if ("MISSING".equals(currentStatus)) {
                     asset.setStatus("OK");
-                    if ("MISSING".equals(currentStatus)) missingToOkCount++;
+                    missingToOkCount++;
+                } else if ("UNSCANNED".equals(currentStatus)) {
+                    asset.setStatus("OK");
+                    missingToOkCount++;
                 }
             }
+
         }
     }
 
@@ -199,7 +206,6 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             statusToast.show();
         });
     }
-    //RFID HANDLING HERE
     @Override
     protected void onResume() {
         super.onResume();
@@ -287,6 +293,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     }
 
     private class SaveAssetsTask extends AsyncTask<Void, Void, Boolean> {
+
+        private String errorMessage = "Unknown error";
         @Override
         protected Boolean doInBackground(Void... voids) {
             try {
@@ -297,7 +305,18 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 );
                 return true;
             } catch (Exception e) {
-                Log.e("SaveAssets", "Error saving assets", e);
+                String backendResponse = e.getMessage();
+                if (backendResponse != null) {
+                    try {
+                        if (backendResponse.contains("{")) {
+                            backendResponse = backendResponse.substring(backendResponse.indexOf("{"));
+                        }
+                        JSONObject errorJson = new JSONObject(backendResponse);
+                        errorMessage = errorJson.optString("message", "Unknown server error") + "\nPlease refresh the location view";
+                    } catch (Exception parseException) {
+                        errorMessage = backendResponse + "\nPlease refresh the location view";
+                    }
+                }
                 return false;
             }
         }
@@ -311,7 +330,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 missingToOkCount = 0;
                 fetchAssets(locationNameText.getText().toString());
             } else {
-                Toast.makeText(AreaDetailsActivity.this, "Error saving data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AreaDetailsActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
             }
         }
     }

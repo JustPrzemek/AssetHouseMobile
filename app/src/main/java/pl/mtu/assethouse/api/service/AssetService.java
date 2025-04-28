@@ -2,6 +2,7 @@ package pl.mtu.assethouse.api.service;
 
 import android.content.Context;
 
+import lombok.Getter;
 import pl.mtu.assethouse.api.ApiClient;
 import pl.mtu.assethouse.models.Asset;
 import pl.mtu.assethouse.utils.SharedPrefsManager;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 public class AssetService {
     private final ApiClient apiClient;
     private final SharedPrefsManager prefsManager;
+    @Getter
+    private int currentInventoryId = -1;
 
     public AssetService(Context context) {
         this.apiClient = new ApiClient(context);
@@ -30,12 +33,13 @@ public class AssetService {
         Map<String, String> params = new HashMap<>();
         params.put("location", location);
         params.put("page", "0");
-        params.put("size", "1000");
+        params.put("size", "1000"); //TODO to jeszcze zminic zeby nie bylo statycznie size
         params.put("sort", "inventoryStatus");
 
         String response = apiClient.get("/api/locations/insideLocation", params);
 
         JSONObject jsonResponse = new JSONObject(response);
+        this.currentInventoryId = jsonResponse.getInt("inventoryId");
         JSONArray content = jsonResponse.getJSONArray("content");
 
         List<Asset> assets = new ArrayList<>();
@@ -60,6 +64,7 @@ public class AssetService {
         JSONObject requestBody = new JSONObject();
         requestBody.put("location", location);
         requestBody.put("user", "USER");
+        requestBody.put("inventoryId", currentInventoryId);
 
         JSONArray assetsArray = new JSONArray();
         addAssetsToArray(assetsArray, assets);
@@ -68,7 +73,16 @@ public class AssetService {
         requestBody.put("assets", assetsArray);
 
         String response = apiClient.post("/api/mobile/updateOutcome", requestBody.toString());
-        return response != null || response.isEmpty();
+        if (response == null || response.isEmpty()) {
+            return true;
+        }
+
+        JSONObject responseJson = new JSONObject(response);
+        if (responseJson.has("statusCode") && responseJson.getInt("statusCode") >= 400) {
+            return false;
+        }
+
+        return true;
     }
 
     private void addAssetsToArray(JSONArray assetsArray, List<Asset> assets) throws JSONException {
