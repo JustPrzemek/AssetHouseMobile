@@ -2,12 +2,14 @@ package pl.mtu.assethouse.api;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import pl.mtu.assethouse.utils.SSLHelper;
 import pl.mtu.assethouse.utils.SharedPrefsManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -71,20 +73,7 @@ public class ApiClient {
                 os.write(input, 0, input.length);
             }
 
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
-                return "";
-            }
-
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(responseCode < 400 ? connection.getInputStream() : connection.getErrorStream()))) {
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                return response.toString();
-            }
+            return handleResponse(connection);
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -92,32 +81,34 @@ public class ApiClient {
         }
     }
 
+
     private String handleResponse(HttpURLConnection connection) throws IOException {
         int responseCode = connection.getResponseCode();
 
-        if (responseCode >= 200 && responseCode < 300) {
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream()))) {
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                return response.toString();
+        InputStream stream = (responseCode >= 200 && responseCode < 300)
+                ? connection.getInputStream()
+                : connection.getErrorStream();
+
+        if (stream == null) {
+            throw new IOException("No response from server, HTTP code: " + responseCode);
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
             }
-        } else {
-            try (BufferedReader errorReader = new BufferedReader(
-                    new InputStreamReader(connection.getErrorStream()))) {
-                StringBuilder errorResponse = new StringBuilder();
-                String line;
-                while ((line = errorReader.readLine()) != null) {
-                    errorResponse.append(line);
-                }
-                throw new IOException("HTTP error code: " + responseCode +
-                        ", Response: " + errorResponse.toString());
+
+            if (responseCode >= 400) {
+                Log.e(TAG, "Request failed: HTTP " + responseCode + ", body: " + response);
+                throw new IOException("HTTP error " + responseCode + ": " + response.toString());
             }
+
+            return response.toString();
         }
     }
+
 
     private URL buildUrl(String endpoint, Map<String, String> params) throws MalformedURLException {
         Uri.Builder uriBuilder = Uri.parse(baseUrl + endpoint).buildUpon();

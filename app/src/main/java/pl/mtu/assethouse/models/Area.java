@@ -2,6 +2,11 @@ package pl.mtu.assethouse.models;
 
 import org.json.JSONObject;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class Area {
     private String location;
     private String scannedDate;
@@ -17,10 +22,4 @@ public class Area {
                 !this.scannedDate.equalsIgnoreCase("null") &&
                 !this.scannedDate.equalsIgnoreCase("undefined");
     }
-
-    public String getLocation() { return location; }
-    public String getScannedDate() { return scannedDate; }
-    public int getCount() { return count; }
-
-    public boolean isScanned() { return scanned; }
 }

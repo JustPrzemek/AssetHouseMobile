@@ -987,7 +987,6 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
                     scannerList = null;
                 }
                 reader.disconnect();
-                //context.sendToast("Disconnecting reader");
                 //reader = null;
             }
         } catch (InvalidUsageException e) {
@@ -1003,7 +1002,6 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
         disconnect();
         try {
             if (reader != null) {
-                //Toast.makeText(getApplicationContext(), "Disconnecting reader", Toast.LENGTH_LONG).show();
                 reader = null;
                 readers.Dispose();
                 readers = null;

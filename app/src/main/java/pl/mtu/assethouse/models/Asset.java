@@ -42,12 +42,6 @@ public class Asset {
         this.systemName = json.optString("systemName", "No system");
     }
 
-    // Getters
-    public String getAssetId() { return assetId; }
-    public String getDescription() { return description; }
-    public String getStatus() { return status; }
-    public String getExpectedLocation() { return expectedLocation; }
-    public String getSystemName() { return systemName; }
 
     public boolean isNew() { return "NEW".equals(status); }
     public boolean isMissing() { return "MISSING".equals(status); }

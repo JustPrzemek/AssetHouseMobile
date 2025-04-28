@@ -9,7 +9,6 @@ public class SSLHelper {
 
     public static void trustAllCertificates() {
         try {
-            // Create a trust manager that trusts all certificates
             TrustManager[] trustAllCertificates = new TrustManager[]{
                     new X509TrustManager() {
                         public X509Certificate[] getAcceptedIssuers() {
@@ -24,7 +23,6 @@ public class SSLHelper {
                     }
             };
 
-            // Install the all-trusting trust manager
             SSLContext sc = SSLContext.getInstance("TLS");
             sc.init(null, trustAllCertificates, new java.security.SecureRandom());
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
