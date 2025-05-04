@@ -1,7 +1,10 @@
 package pl.mtu.assethouse.activities;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -19,15 +22,23 @@ import org.json.JSONObject;
 
 import pl.mtu.assethouse.adapters.AssetsAdapter;
 import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.adapters.InventoryDataAdapter;
+import pl.mtu.assethouse.api.ApiClient;
 import pl.mtu.assethouse.api.service.AssetService;
+import pl.mtu.assethouse.api.service.InventoryService;
 import pl.mtu.assethouse.models.Asset;
+import pl.mtu.assethouse.models.AssetInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandler.ResponseHandlerInterface {
@@ -40,13 +51,21 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private RFIDHandler rfidHandler;
     private TextView statusTextViewRFID;
     private TextView toggleText;
-
+    private InventoryDataAdapter inventoryDataAdapter;
     private AssetService assetService;
     private List<Asset> assetsList = new ArrayList<>();
     private List<Asset> scannedAssetsList = new ArrayList<>();
     private int newAssetsCount = 0;
     private int missingToOkCount = 0;
     private Toast statusToast;
+    private final Executor runOnUiThreadExecutor = Executors.newSingleThreadExecutor(r -> {
+        Handler handler = new Handler(Looper.getMainLooper());
+        return new Thread(() -> {
+            Looper.prepare();
+            handler.post(r);
+            Looper.loop();
+        });
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +75,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         assetService = new AssetService(this);
         rfidHandler = new RFIDHandler();
         rfidHandler.onCreate(this);
+        inventoryDataAdapter = new InventoryDataAdapter(this);
 
         initializeViews();
         setupRecyclerView();
@@ -68,7 +88,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         }
 
         locationNameText.setText(location);
-        fetchAssets(location);
+        checkInventoryAndFetchAssets(location);
     }
 
     private void initializeViews() {
@@ -81,6 +101,40 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
         saveButton.setOnClickListener(v -> saveAssets());
         toggleText.setOnClickListener(v -> toggleViewType());
+    }
+
+    private void checkInventoryAndFetchAssets(String location) {
+        progressBar.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            try {
+                Map<String, String> params = new HashMap<>();
+                String response = new ApiClient(this).get("/api/mobile/inventoryNumber", params);
+                JSONObject jsonResponse = new JSONObject(response);
+                int serverInventoryId = jsonResponse.getInt("inventoryId");
+
+                int localInventoryId = new InventoryService(this).getInventoryId();
+
+                if (serverInventoryId != localInventoryId) {
+                    runOnUiThread(this::restartApplication);
+                    return;
+                }
+
+                runOnUiThread(() -> fetchAssets(location));
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Error checking inventory", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            }
+        }).start();
+    }
+    private void restartApplication() {
+        Intent intent = new Intent(this, SplashActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+        Runtime.getRuntime().exit(0);
     }
 
     private void setupRecyclerView() {
@@ -120,8 +174,14 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
+        inventoryDataAdapter = new InventoryDataAdapter(this);
+        List<AssetInfo> allAssetsInPrefs = inventoryDataAdapter.getAllAssets();
+        Set<String> prefsAssetIds = allAssetsInPrefs.stream()
+                .map(AssetInfo::getAssetId)
+                .collect(Collectors.toSet());
+
         updateAssetStatuses(scannedTagIds, existingAssetIds);
-        addNewAssets(scannedTagIds, existingAssetIds);
+        addNewAssets(scannedTagIds, existingAssetIds, prefsAssetIds);
 
         runOnUiThread(() -> adapter.updateAssets(assetsList, scannedAssetsList));
     }
@@ -164,19 +224,25 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         }
     }
 
-    private void addNewAssets(Set<String> scannedTagIds, Set<String> existingAssetIds) {
+    private void addNewAssets(Set<String> scannedTagIds, Set<String> existingAssetIds, Set<String> prefsAssetIds) {
         for (String scannedTag : scannedTagIds) {
             if (scannedTag != null && !existingAssetIds.contains(scannedTag)) {
-                boolean alreadyScanned = scannedAssetsList.stream()
-                        .anyMatch(a -> scannedTag.equals(cleanTagId(a.getAssetId())));
+                if (prefsAssetIds.contains(scannedTag)) {
+                    boolean alreadyScanned = scannedAssetsList.stream()
+                            .anyMatch(a -> scannedTag.equals(cleanTagId(a.getAssetId())));
 
-                if (!alreadyScanned) {
-                    Asset newAsset = new Asset();
-                    newAsset.setAssetId(scannedTag);
-                    newAsset.setDescription("Newly Scanned Asset");
-                    newAsset.setStatus("NEW");
-                    scannedAssetsList.add(newAsset);
-                    newAssetsCount++;
+                    if (!alreadyScanned) {
+                        AssetInfo assetInfo = inventoryDataAdapter.getAssetById(scannedTag);
+
+                        Asset newAsset = new Asset();
+                        newAsset.setAssetId(scannedTag);
+                        newAsset.setDescription(assetInfo != null ? assetInfo.getDescription() : "Newly Scanned Asset");
+                        newAsset.setStatus("NEW");
+                        newAsset.setExpectedLocation(assetInfo != null ? assetInfo.getLocationName() : "No location");
+                        newAsset.setSystemName(assetInfo != null ? assetInfo.getSystemName() : "No system");
+                        scannedAssetsList.add(newAsset);
+                        newAssetsCount++;
+                    }
                 }
             }
         }

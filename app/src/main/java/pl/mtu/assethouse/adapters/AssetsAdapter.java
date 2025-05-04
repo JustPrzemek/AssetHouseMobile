@@ -52,9 +52,13 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
     }
 
     private String getPlacementText(Asset asset) {
-        if (asset.isNew()) return asset.getExpectedLocation();
-        if (asset.isMissing() || asset.isOk() || asset.isUnscanned()) return asset.getSystemName();
-        return asset.getDescription();
+        if (asset.isNew()) {
+            return asset.getExpectedLocation() != null ? asset.getExpectedLocation() : "No location";
+        }
+        if (asset.isMissing() || asset.isOk() || asset.isUnscanned()) {
+            return asset.getSystemName() != null ? asset.getSystemName() : "No system";
+        }
+        return asset.getDescription() != null ? asset.getDescription() : "No description";
     }
 
     private int getBackgroundResource(String status) {

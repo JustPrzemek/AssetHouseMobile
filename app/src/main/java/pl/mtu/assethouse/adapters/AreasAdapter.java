@@ -64,15 +64,7 @@ public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.ViewHolder> 
                 dateString.equalsIgnoreCase("null") ||
                 dateString.equalsIgnoreCase("undefined")) {
             return "Unscanned";
-        }
-
-        try {
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-            SimpleDateFormat outputFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
-            Date date = inputFormat.parse(dateString);
-            return outputFormat.format(date);
-        } catch (ParseException e) {
-            Log.e("DateParse", "Error parsing date: " + dateString, e);
+        } else {
             return dateString;
         }
     }

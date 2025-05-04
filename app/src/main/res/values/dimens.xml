@@ -5,4 +5,6 @@
     <dimen name="button_margin_top2">20dp</dimen>
     <dimen name="activity_padding">10dp</dimen>
     <dimen name="title_margin_top">32dp</dimen>
+    <dimen name="main_button_margin_top">16dp</dimen>
+    <dimen name="main_button_margin_top2">5dp</dimen>
 </resources>
