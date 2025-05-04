@@ -14,11 +14,34 @@
         android:textSize="@dimen/title_text_size"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btn_test"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         android:layout_marginTop="@dimen/title_margin_top"/>
+
+    <TextView
+        android:id="@+id/inventoryIdText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ID inwentarza: -"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/welcomeText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"/>
+
+    <TextView
+        android:id="@+id/assetCountText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Liczba zasobów: -"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/inventoryIdText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btn_test"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_test"
@@ -26,11 +49,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/btn_test"
-        app:layout_constraintTop_toBottomOf="@id/welcomeText"
+        app:layout_constraintTop_toBottomOf="@id/assetCountText"
         app:layout_constraintBottom_toTopOf="@id/btn_areas"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/button_margin_top"/>
+        android:layout_marginTop="@dimen/main_button_margin_top"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_areas"
@@ -42,9 +65,8 @@
         app:layout_constraintBottom_toTopOf="@id/btn_settings"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/button_margin_top2"
-        android:text="@string/btn_areas"
-        />
+        android:layout_marginTop="@dimen/main_button_margin_top2"
+        android:text="@string/btn_areas"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_settings"
@@ -52,11 +74,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_areas"
-        android:layout_marginTop="@dimen/button_margin_top2"
+        android:layout_marginTop="@dimen/main_button_margin_top2"
         app:layout_constraintTop_toBottomOf="@id/btn_areas"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="@string/btn_settings" />
+        android:text="@string/btn_settings"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
