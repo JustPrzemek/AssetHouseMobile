@@ -33,7 +33,7 @@ public class AssetService {
         Map<String, String> params = new HashMap<>();
         params.put("location", location);
         params.put("page", "0");
-        params.put("size", "1000"); //TODO to jeszcze zminic zeby nie bylo statycznie size
+        params.put("size", "2000"); //TODO to jeszcze zminic zeby nie bylo statycznie size
         params.put("sort", "inventoryStatus");
 
         String response = apiClient.get("/api/locations/insideLocation", params);
