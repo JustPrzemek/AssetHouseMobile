@@ -35,6 +35,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (!newUrl.isEmpty()) {
             prefsManager.setBaseUrl(newUrl);
             Toast.makeText(this, "API URL Updated!", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_OK);
             finish();
         } else {
             Toast.makeText(this, "Please enter a valid URL", Toast.LENGTH_SHORT).show();

@@ -8,7 +8,7 @@
     <string name="btn_test">TEST</string>
     <string name="btn_areas">AREAS</string>
     <string name="btn_settings">SETTINGS</string>
-    <string name="loading_data">Ładowanie danych...</string>
-    <string name="connecting">Łączenie z siecią...</string>
-    <string name="data_loaded">Dane załadowane!</string>
+    <string name="loading_data">Loading data ...</string>
+    <string name="connecting">Connecting to web...</string>
+    <string name="data_loaded">Data id loaded!</string>
 </resources>
