@@ -29,12 +29,12 @@ public class AssetService {
         this.prefsManager = new SharedPrefsManager(context);
     }
 
-    public List<Asset> getAssetsInLocation(String location) throws Exception {
+    public List<Asset> getAssetsInLocation(String location, String sort) throws Exception {
         Map<String, String> params = new HashMap<>();
         params.put("location", location);
         params.put("page", "0");
         params.put("size", "2000"); //TODO to jeszcze zminic zeby nie bylo statycznie size
-        params.put("sort", "inventoryStatus");
+        params.put("sort", sort);
 
         String response = apiClient.get("/api/locations/insideLocation", params);
 

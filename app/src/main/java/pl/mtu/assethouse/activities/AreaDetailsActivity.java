@@ -43,14 +43,12 @@ import java.util.stream.Collectors;
 
 public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandler.ResponseHandlerInterface {
 
-    private TextView locationNameText;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private AssetsAdapter adapter;
     private Button saveButton;
     private RFIDHandler rfidHandler;
-    private TextView statusTextViewRFID;
-    private TextView toggleText;
+    private TextView toggleText, assetIdSortButton, locationNameText, statusTextViewRFID;
     private InventoryDataAdapter inventoryDataAdapter;
     private AssetService assetService;
     private List<Asset> assetsList = new ArrayList<>();
@@ -58,6 +56,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private int newAssetsCount = 0;
     private int missingToOkCount = 0;
     private Toast statusToast;
+    private String currentSortParameter = "inventoryStatus";
     private final Executor runOnUiThreadExecutor = Executors.newSingleThreadExecutor(r -> {
         Handler handler = new Handler(Looper.getMainLooper());
         return new Thread(() -> {
@@ -98,9 +97,12 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         statusTextViewRFID = findViewById(R.id.textViewStatusrfid);
         saveButton = findViewById(R.id.saveButton);
         toggleText = findViewById(R.id.toggleText);
+        assetIdSortButton = findViewById(R.id.assetIdSortButton);
+
 
         saveButton.setOnClickListener(v -> saveAssets());
         toggleText.setOnClickListener(v -> toggleViewType());
+        assetIdSortButton.setOnClickListener(v -> assetIdSort());
     }
 
     private void checkInventoryAndFetchAssets(String location) {
@@ -149,6 +151,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         adapter.setShowPlacementView(showPlacement);
     }
 
+    private void assetIdSort() {
+        if (currentSortParameter.equals("inventoryStatus")) {
+            currentSortParameter = "assetId";
+        } else {
+            currentSortParameter = "inventoryStatus";
+        }
+        fetchAssets(locationNameText.getText().toString());
+    }
+
     private void fetchAssets(String location) {
         new FetchAssetsTask().execute(location);
     }
@@ -166,6 +177,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 .filter(tagId -> !tagId.isEmpty())
                 .map(this::cleanTagId)
                 .filter(Objects::nonNull)
+                .filter(tag -> !"82442-0".equals(tag))
                 .collect(Collectors.toSet());
 
         Set<String> existingAssetIds = assetsList.stream()
@@ -187,19 +199,24 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     }
 
     private String cleanTagId(String tagId) {
-        if ("82442-0".equals(tagId)) {
+        if (tagId == null || tagId.trim().isEmpty()) {
             return null;
         }
 
-        String cleaned = tagId.split("[^a-zA-Z0-9-]")[0].trim();
+        String cleaned = tagId.trim().replaceAll("\\s", "");
+
+        if ("82442-0".equals(cleaned)) {
+            return null;
+        }
+
+        cleaned = cleaned.split("[^a-zA-Z0-9-]")[0].trim();
 
         if (cleaned.contains("-")) {
             if (!cleaned.matches(".*-\\d+.*")) {
                 return null;
             }
             return cleaned.replaceAll("^(\\d+-\\d+).*", "$1");
-        }
-        else {
+        } else {
             String digitsOnly = cleaned.replaceAll("[^0-9]", "");
             return digitsOnly.length() >= 4 ? digitsOnly : null;
         }
@@ -313,7 +330,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         @Override
         protected List<Asset> doInBackground(String... params) {
             try {
-                List<Asset> assets = assetService.getAssetsInLocation(params[0]);
+                List<Asset> assets = assetService.getAssetsInLocation(params[0], currentSortParameter);
 
                 Set<String> scannedAssetIds = scannedAssetsList.stream()
                         .map(Asset::getAssetId)
