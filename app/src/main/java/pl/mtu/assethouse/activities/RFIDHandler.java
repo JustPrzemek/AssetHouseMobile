@@ -62,7 +62,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     private ArrayList<DCSScannerInfo> scannerList;
     private int scannerID;
     static MyAsyncTask cmdExecTask = null;
-    private int MAX_POWER = 297;
+    private int MAX_POWER = 300;
     private int DEVICE_STD_MODE = 0;
     private int DEVICE_PREMIUM_PLUS_MODE = 1;
 

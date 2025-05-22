@@ -48,7 +48,31 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
                 asset.getDescription();
 
         holder.description.setText(displayText);
-        setupTextViewBehavior(holder.description, displayText, asset.getStatus());
+        setupTextViewBehavior(holder.description, displayText);
+
+        holder.itemView.setOnClickListener(v -> {
+            showAssetDetailsDialog(v.getContext(), asset);
+        });
+    }
+
+    private void showAssetDetailsDialog(Context context, Asset asset) {
+        StringBuilder message = new StringBuilder();
+        message.append("Asset ID: ").append(asset.getAssetId() != null ? asset.getAssetId() : "N/A").append("\n\n");
+
+        String description = asset.getDescription();
+        message.append("Description: ").append(description != null ? description : "N/A").append("\n\n");
+
+        String systemName = asset.getSystemName();
+        message.append("System Name: ").append(systemName != null ? systemName : "N/A").append("\n\n");
+
+        String expectedLocation = asset.getExpectedLocation();
+        message.append("Expected Location: ").append(expectedLocation != null ? expectedLocation : "N/A");
+
+        new AlertDialog.Builder(context)
+                .setTitle("Asset Details")
+                .setMessage(message.toString())
+                .setPositiveButton("OK", null)
+                .show();
     }
 
     private String getPlacementText(Asset asset) {
@@ -70,27 +94,10 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         }
     }
 
-    private void setupTextViewBehavior(TextView textView, String text, String status) {
+    private void setupTextViewBehavior(TextView textView, String text) {
         textView.setMaxLines(1);
         textView.setEllipsize(TextUtils.TruncateAt.END);
         textView.setText(text);
-
-        textView.post(() -> {
-            if (isTextTruncated(textView)) {
-                textView.setOnClickListener(v -> showFullTextDialog(v.getContext(), text, status));
-            }
-        });
-    }
-
-    private boolean isTextTruncated(TextView textView) {
-        Layout layout = textView.getLayout();
-        if (layout != null) {
-            int lines = layout.getLineCount();
-            if (lines > 0) {
-                return layout.getEllipsisCount(lines - 1) > 0;
-            }
-        }
-        return false;
     }
 
     private void showFullTextDialog(Context context, String text, String status) {
