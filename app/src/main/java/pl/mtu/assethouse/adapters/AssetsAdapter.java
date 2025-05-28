@@ -108,15 +108,15 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
 
         new Thread(() -> {
             try {
-                List<String> comments = new ArrayList<>(assetService.getPredefinedComments()); // Tworzymy kopię listy
-                comments.add(0, "----"); // Dodajemy domyślną wartość tylko do lokalnej kopii
+                List<String> comments = new ArrayList<>(assetService.getPredefinedComments());
+                comments.add(0, "----");
 
                 new Handler(Looper.getMainLooper()).post(() -> {
                     spinnerAdapter.clear();
                     spinnerAdapter.addAll(comments);
                     spinnerAdapter.notifyDataSetChanged();
 
-                    commentsSpinner.setSelection(0); // Ustaw domyślną wartość
+                    commentsSpinner.setSelection(0);
 
                     if (asset.getComment() != null && !asset.getComment().isEmpty() && !asset.getComment().equals("----")) {
                         int position = comments.indexOf(asset.getComment());
@@ -132,7 +132,6 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
 
         builder.setPositiveButton(R.string.ok, (dialog, which) -> {
             String selectedComment = (String) commentsSpinner.getSelectedItem();
-            // Zapisz komentarz tylko jeśli nie jest domyślną wartością
             asset.setComment(selectedComment != null && !selectedComment.equals("----") ? selectedComment : "");
         });
 

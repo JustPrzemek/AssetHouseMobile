@@ -65,7 +65,7 @@ public class AssetService {
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("location", location);
-        requestBody.put("user", "USER");
+        requestBody.put("user", "MOBILE");
         requestBody.put("inventoryId", currentInventoryId);
 
         JSONArray assetsArray = new JSONArray();
@@ -119,12 +119,12 @@ public class AssetService {
             JSONObject jsonResponse = new JSONObject(response);
             JSONArray commentsArray = jsonResponse.getJSONArray("comments");
 
-            predefinedComments.clear(); // Wyczyść listę przed dodaniem nowych elementów
+            predefinedComments.clear();
             for (int i = 0; i < commentsArray.length(); i++) {
                 JSONObject commentObj = commentsArray.getJSONObject(i);
                 predefinedComments.add(commentObj.getString("comment"));
             }
         }
-        return new ArrayList<>(predefinedComments); // Zwróć kopię listy
+        return new ArrayList<>(predefinedComments);
     }
 }
