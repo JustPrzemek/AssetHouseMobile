@@ -1,17 +1,28 @@
 package pl.mtu.assethouse.adapters;
 
 import android.content.Context;
+import android.graphics.Typeface;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Layout;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.api.ApiClient;
+import pl.mtu.assethouse.api.service.AssetService;
 import pl.mtu.assethouse.models.Asset;
 
 import java.util.ArrayList;
@@ -21,10 +32,12 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
     private List<Asset> assetList;
     private List<Asset> scannedAssetsList;
     private boolean showPlacementView = false;
+    private AssetService assetService;
 
-    public AssetsAdapter(List<Asset> assetList, List<Asset> scannedAssetsList) {
+    public AssetsAdapter(List<Asset> assetList, List<Asset> scannedAssetsList, AssetService assetsService) {
         this.assetList = new ArrayList<>(assetList);
         this.scannedAssetsList = new ArrayList<>(scannedAssetsList);
+        this.assetService = assetsService;
     }
 
     @NonNull
@@ -56,25 +69,85 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
     }
 
     private void showAssetDetailsDialog(Context context, Asset asset) {
-        StringBuilder message = new StringBuilder();
-        message.append("Asset ID: ").append(asset.getAssetId() != null ? asset.getAssetId() : "N/A").append("\n\n");
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(R.string.asset_details);
 
-        String description = asset.getDescription();
-        message.append("Description: ").append(description != null ? description : "N/A").append("\n\n");
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 20, 50, 20);
 
-        String systemName = asset.getSystemName();
-        message.append("System Name: ").append(systemName != null ? systemName : "N/A").append("\n\n");
+        TextView assetIdView = new TextView(context);
+        setBoldLabelText(assetIdView, "Asset ID: \n", getDisplayText(context, asset.getAssetId()));
+        layout.addView(assetIdView);
 
-        String expectedLocation = asset.getExpectedLocation();
-        message.append("Expected Location: ").append(expectedLocation != null ? expectedLocation : "N/A");
+        TextView descriptionView = new TextView(context);
+        setBoldLabelText(descriptionView, "Description: \n", getDisplayText(context, asset.getDescription()));
+        layout.addView(descriptionView);
 
-        new AlertDialog.Builder(context)
-                .setTitle("Asset Details")
-                .setMessage(message.toString())
-                .setPositiveButton("OK", null)
-                .show();
+        TextView systemNameView = new TextView(context);
+        setBoldLabelText(systemNameView, "System Name: \n", getDisplayText(context, asset.getSystemName()));
+        layout.addView(systemNameView);
+
+        TextView locationView = new TextView(context);
+        setBoldLabelText(locationView, "Expected Location: \n", getDisplayText(context, asset.getExpectedLocation()));
+        layout.addView(locationView);
+
+        Spinner commentsSpinner = new Spinner(context);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(context,
+                android.R.layout.simple_spinner_item,
+                new ArrayList<>());
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        commentsSpinner.setAdapter(spinnerAdapter);
+
+        TextView commentsLabel = new TextView(context);
+        commentsLabel.setText(R.string.comment_label);
+        layout.addView(commentsLabel);
+        layout.addView(commentsSpinner);
+
+        builder.setView(layout);
+
+        new Thread(() -> {
+            try {
+                List<String> comments = new ArrayList<>(assetService.getPredefinedComments()); // Tworzymy kopię listy
+                comments.add(0, "----"); // Dodajemy domyślną wartość tylko do lokalnej kopii
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    spinnerAdapter.clear();
+                    spinnerAdapter.addAll(comments);
+                    spinnerAdapter.notifyDataSetChanged();
+
+                    commentsSpinner.setSelection(0); // Ustaw domyślną wartość
+
+                    if (asset.getComment() != null && !asset.getComment().isEmpty() && !asset.getComment().equals("----")) {
+                        int position = comments.indexOf(asset.getComment());
+                        if (position >= 0) {
+                            commentsSpinner.setSelection(position);
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+            String selectedComment = (String) commentsSpinner.getSelectedItem();
+            // Zapisz komentarz tylko jeśli nie jest domyślną wartością
+            asset.setComment(selectedComment != null && !selectedComment.equals("----") ? selectedComment : "");
+        });
+
+        builder.setNegativeButton(R.string.cancel, null);
+
+        builder.create().show();
     }
-
+    private void setBoldLabelText(TextView textView, String label, String value) {
+        SpannableString spannable = new SpannableString(label + value);
+        spannable.setSpan(new StyleSpan(Typeface.BOLD), 0, label.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        textView.setText(spannable);
+    }
+    private String getDisplayText(Context context, String value) {
+        return value != null ? value : context.getString(R.string.not_available);
+    }
     private String getPlacementText(Asset asset) {
         if (asset.isNew()) {
             return asset.getExpectedLocation() != null ? asset.getExpectedLocation() : "No location";
@@ -98,19 +171,6 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         textView.setMaxLines(1);
         textView.setEllipsize(TextUtils.TruncateAt.END);
         textView.setText(text);
-    }
-
-    private void showFullTextDialog(Context context, String text, String status) {
-        String dialogTitle = showPlacementView ?
-                (status.equals("NEW") ? "Expected Location" :
-                        (status.equals("MISSING") || status.equals("OK") || status.equals("UNSCANNED")) ? "System Name" : "Description")
-                : "Description";
-
-        new AlertDialog.Builder(context)
-                .setTitle(dialogTitle)
-                .setMessage(text)
-                .setPositiveButton("OK", null)
-                .show();
     }
 
     @Override

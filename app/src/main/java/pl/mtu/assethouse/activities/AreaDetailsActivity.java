@@ -141,7 +141,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AssetsAdapter(assetsList, scannedAssetsList);
+        adapter = new AssetsAdapter(assetsList, scannedAssetsList, assetService);
         recyclerView.setAdapter(adapter);
     }
 

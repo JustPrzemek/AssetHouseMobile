@@ -15,6 +15,7 @@ public class Asset {
     private String status;
     private String expectedLocation;
     private String systemName;
+    private String comment;
 
     public Asset(JSONObject json) {
         this.assetId = json.optString("assetId", "");

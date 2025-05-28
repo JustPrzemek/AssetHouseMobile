@@ -23,6 +23,8 @@ public class AssetService {
     private final SharedPrefsManager prefsManager;
     @Getter
     private int currentInventoryId = -1;
+    private List<String> predefinedComments = new ArrayList<>();
+
 
     public AssetService(Context context) {
         this.apiClient = new ApiClient(context);
@@ -90,7 +92,7 @@ public class AssetService {
             JSONObject assetObj = new JSONObject();
             assetObj.put("assetId", asset.getAssetId());
             assetObj.put("status", asset.getStatus());
-            assetObj.put("comment", "");
+            assetObj.put("comment", asset.getComment() != null ? asset.getComment() : "");
             assetsArray.put(assetObj);
         }
     }
@@ -105,9 +107,24 @@ public class AssetService {
                 JSONObject assetObj = new JSONObject();
                 assetObj.put("assetId", scannedAsset.getAssetId());
                 assetObj.put("status", scannedAsset.getStatus());
-                assetObj.put("comment", "");
+                assetObj.put("comment", scannedAsset.getComment() != null ? scannedAsset.getComment() : "");
                 assetsArray.put(assetObj);
             }
         }
+    }
+
+    public List<String> getPredefinedComments() throws Exception {
+        if (predefinedComments.isEmpty()) {
+            String response = apiClient.getPredefinedComments();
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONArray commentsArray = jsonResponse.getJSONArray("comments");
+
+            predefinedComments.clear(); // Wyczyść listę przed dodaniem nowych elementów
+            for (int i = 0; i < commentsArray.length(); i++) {
+                JSONObject commentObj = commentsArray.getJSONObject(i);
+                predefinedComments.add(commentObj.getString("comment"));
+            }
+        }
+        return new ArrayList<>(predefinedComments); // Zwróć kopię listy
     }
 }

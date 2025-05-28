@@ -117,4 +117,26 @@ public class ApiClient {
         }
         return new URL(uriBuilder.build().toString());
     }
+
+    public String getPredefinedComments() throws IOException {
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(baseUrl + "/api/mobile/predefinedComments");
+
+            if (baseUrl.contains("https")) {
+                connection = (HttpsURLConnection) url.openConnection();
+            } else {
+                connection = (HttpURLConnection) url.openConnection();
+            }
+
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            return handleResponse(connection);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
 }

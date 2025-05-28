@@ -11,4 +11,16 @@
     <string name="loading_data">Loading data ...</string>
     <string name="connecting">Connecting to web...</string>
     <string name="data_loaded">Data id loaded!</string>
+
+    <string name="asset_id">Asset ID: %1$s\n</string>
+    <string name="description">Description: %1$s\n</string>
+    <string name="system_name">System Name: %1$s\n</string>
+    <string name="expected_location">Expected Location: %1$s\n</string>
+    <string name="not_available">N/A</string>
+    <string name="comment_label"><b>Comment:</b></string>
+    <string name="asset_details">Asset Details</string>
+
+    <string name="ok">OK</string>
+    <string name="empty_comment_placeholder">---</string>
+    <string name="cancel">CANCEL</string>
 </resources>
