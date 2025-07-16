@@ -65,6 +65,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
     private int MAX_POWER = 300;
     private int DEVICE_STD_MODE = 0;
     private int DEVICE_PREMIUM_PLUS_MODE = 1;
+    private ScanMode currentMode = ScanMode.RFID;
 
     // In case of RFD8500 change reader name with intended device below from list of paired RFD8500
     // If barcode scan is available in RFD8500, for barcode scanning change mode using mode button on RFD8500 device. By default it is set to RFID mode
@@ -84,6 +85,36 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
         InitSDK();
     }
 
+    public enum ScanMode {
+        RFID,
+        BARCODE
+    }
+
+    public void setScanMode(ScanMode mode) {
+        if (reader == null || !reader.isConnected()) {
+            Log.d(TAG, "Cannot change scan mode, reader not connected.");
+            return;
+        }
+
+        this.currentMode = mode;
+        try {
+            if (mode == ScanMode.BARCODE) {
+                // Ustawia spust w tryb skanowania kodów kreskowych
+                reader.Config.setTriggerMode(ENUM_TRIGGER_MODE.BARCODE_MODE, true);
+                Log.d(TAG, "Switched to BARCODE mode.");
+            } else {
+                // Ustawia spust w tryb skanowania RFID
+                reader.Config.setTriggerMode(ENUM_TRIGGER_MODE.RFID_MODE, true);
+                Log.d(TAG, "Switched to RFID mode.");
+            }
+        } catch (InvalidUsageException | OperationFailureException e) {
+            Log.e(TAG, "Error setting trigger mode: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    public ScanMode getCurrentMode() {
+        return this.currentMode;
+    }
     @Override
     public void dcssdkEventScannerAppeared(DCSScannerInfo dcsScannerInfo) {
 
@@ -846,7 +877,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
                     ConfigureReader();
 
                     //Call this function if the readerdevice supports scanner to setup scanner SDK
-                    //setupScannerSDK();
+                    setupScannerSDK();
                     if(reader.isConnected()){
                         return "Connected: " + reader.getHostName();
                     }
@@ -887,6 +918,7 @@ class RFIDHandler implements IDcsSdkApiDelegate, Readers.RFIDReaderEventHandler 
                 reader.Events.setAttachTagDataWithReadEvent(false);
                 // set trigger mode as rfid so scanner beam will not come
                 reader.Config.setTriggerMode(ENUM_TRIGGER_MODE.RFID_MODE, true);
+                this.currentMode = ScanMode.RFID;
                 // set start and stop triggers
                 reader.Config.setStartTrigger(triggerInfo.StartTrigger);
                 reader.Config.setStopTrigger(triggerInfo.StopTrigger);
