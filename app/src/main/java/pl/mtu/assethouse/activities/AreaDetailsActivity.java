@@ -1,6 +1,9 @@
 package pl.mtu.assethouse.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +34,7 @@ import pl.mtu.assethouse.models.AssetInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandler.ResponseHandlerInterface {
+
 
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
@@ -57,6 +62,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private int missingToOkCount = 0;
     private Toast statusToast;
     private String currentSortParameter = "inventoryStatus";
+    private Button switchModeButton;
+
     private final Executor runOnUiThreadExecutor = Executors.newSingleThreadExecutor(r -> {
         Handler handler = new Handler(Looper.getMainLooper());
         return new Thread(() -> {
@@ -103,6 +110,22 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         saveButton.setOnClickListener(v -> saveAssets());
         toggleText.setOnClickListener(v -> toggleViewType());
         assetIdSortButton.setOnClickListener(v -> assetIdSort());
+
+        switchModeButton = findViewById(R.id.switchModeButton);
+        switchModeButton.setOnClickListener(v -> switchScanMode());
+        rfidHandler.setScanMode(RFIDHandler.ScanMode.RFID);
+    }
+
+    private void switchScanMode() {
+        if (rfidHandler.getCurrentMode() == RFIDHandler.ScanMode.RFID) {
+            rfidHandler.setScanMode(RFIDHandler.ScanMode.BARCODE);
+            switchModeButton.setText(R.string.switch_to_rfid);
+            Toast.makeText(this, R.string.barcode_mode, Toast.LENGTH_SHORT).show();
+        } else {
+            rfidHandler.setScanMode(RFIDHandler.ScanMode.RFID);
+            switchModeButton.setText(R.string.switch_to_barcode);
+            Toast.makeText(this, R.string.rfid_mode, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void checkInventoryAndFetchAssets(String location) {
@@ -141,7 +164,10 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AssetsAdapter(assetsList, scannedAssetsList, assetService);
+        List<Asset> combinedList = new ArrayList<>();
+        combinedList.addAll(assetsList);
+        combinedList.addAll(scannedAssetsList);
+        adapter = new AssetsAdapter(combinedList, assetService);
         recyclerView.setAdapter(adapter);
     }
 
@@ -164,11 +190,25 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         new FetchAssetsTask().execute(location);
     }
 
+    private void updateAdapterWithSortedList() {
+
+        List<Asset> combinedList = new ArrayList<>();
+        combinedList.addAll(assetsList);
+        combinedList.addAll(scannedAssetsList);
+
+        Collections.sort(combinedList, (a1, a2) -> {
+            return Long.compare(a2.getLastScannedTimestamp(), a1.getLastScannedTimestamp());
+        });
+
+        runOnUiThread(() -> {
+            adapter.updateAssets(combinedList);
+            recyclerView.scrollToPosition(0);
+        });
+    }
     // RFID Handling methods
     @Override
     public void handleTagdata(TagData[] tagData) {
         processTagData(tagData);
-        runOnUiThread(() -> adapter.notifyDataSetChanged());
     }
 
     private void processTagData(TagData[] tagData) {
@@ -195,7 +235,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         updateAssetStatuses(scannedTagIds, existingAssetIds);
         addNewAssets(scannedTagIds, existingAssetIds, prefsAssetIds);
 
-        runOnUiThread(() -> adapter.updateAssets(assetsList, scannedAssetsList));
+        updateAdapterWithSortedList();
     }
 
     private String cleanTagId(String tagId) {
@@ -227,14 +267,12 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             String cleanAssetId = cleanTagId(asset.getAssetId());
             if (cleanAssetId == null) continue;
 
-            String currentStatus = asset.getStatus();
             if (scannedTagIds.contains(cleanAssetId)) {
-                if ("MISSING".equals(currentStatus)) {
+                String currentStatus = asset.getStatus();
+                if ("MISSING".equals(currentStatus) || "UNSCANNED".equals(currentStatus)) {
                     asset.setStatus("OK");
                     missingToOkCount++;
-                } else if ("UNSCANNED".equals(currentStatus)) {
-                    asset.setStatus("OK");
-                    missingToOkCount++;
+                    asset.setLastScannedTimestamp(System.currentTimeMillis());
                 }
             }
 
@@ -250,13 +288,13 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
                     if (!alreadyScanned) {
                         AssetInfo assetInfo = inventoryDataAdapter.getAssetById(scannedTag);
-
                         Asset newAsset = new Asset();
                         newAsset.setAssetId(scannedTag);
                         newAsset.setDescription(assetInfo != null ? assetInfo.getDescription() : "Newly Scanned Asset");
                         newAsset.setStatus("NEW");
                         newAsset.setExpectedLocation(assetInfo != null ? assetInfo.getLocationName() : "No location");
                         newAsset.setSystemName(assetInfo != null ? assetInfo.getSystemName() : "No system");
+                        newAsset.setLastScannedTimestamp(System.currentTimeMillis());
                         scannedAssetsList.add(newAsset);
                         newAssetsCount++;
                     }
@@ -267,13 +305,61 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
     @Override
     public void handleTriggerPress(boolean pressed) {
-        if (pressed) {
-            resetCounters();
-            rfidHandler.performInventory();
-        } else {
-            rfidHandler.stopInventory();
-            showScanResults();
+        if (rfidHandler.getCurrentMode() == RFIDHandler.ScanMode.RFID) {
+            if (pressed) {
+                resetCounters();
+                rfidHandler.performInventory();
+            } else {
+                rfidHandler.stopInventory();
+                showScanResults();
+            }
         }
+    }
+
+    private void processBarcodeData(String barcode) {
+        String cleanedBarcode = cleanTagId(barcode);
+        if (cleanedBarcode == null) return;
+
+        boolean found = false;
+        // Sprawdź, czy zasób jest już na głównej liście
+        for (Asset asset : assetsList) {
+            if (cleanedBarcode.equals(cleanTagId(asset.getAssetId()))) {
+                if ("MISSING".equals(asset.getStatus()) || "UNSCANNED".equals(asset.getStatus())) {
+                    asset.setStatus("OK");
+                    Toast.makeText(this, "Zaktualizowano: " + asset.getAssetId(), Toast.LENGTH_SHORT).show();
+                }
+                // Ustaw znacznik czasu
+                asset.setLastScannedTimestamp(System.currentTimeMillis());
+                found = true;
+                break;
+            }
+        }
+
+        // Jeśli nie ma na liście, sprawdź, czy to nowy zasób
+        if (!found) {
+            boolean alreadyScanned = scannedAssetsList.stream()
+                    .anyMatch(a -> cleanedBarcode.equals(cleanTagId(a.getAssetId())));
+
+            if (!alreadyScanned) {
+                AssetInfo assetInfo = inventoryDataAdapter.getAssetById(cleanedBarcode);
+                if (assetInfo != null) {
+                    Asset newAsset = new Asset();
+                    newAsset.setAssetId(cleanedBarcode);
+                    newAsset.setDescription(assetInfo.getDescription());
+                    newAsset.setStatus("NEW");
+                    newAsset.setExpectedLocation(assetInfo.getLocationName());
+                    newAsset.setSystemName(assetInfo.getSystemName());
+                    // Ustaw znacznik czasu
+                    newAsset.setLastScannedTimestamp(System.currentTimeMillis());
+                    scannedAssetsList.add(newAsset);
+                    Toast.makeText(this, "Dodano nowy: " + newAsset.getAssetId(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Nieznany kod: " + cleanedBarcode, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        // Użyj nowej metody do aktualizacji
+        updateAdapterWithSortedList();
     }
 
     private void resetCounters() {
@@ -289,17 +375,36 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             statusToast.show();
         });
     }
+
+    private final BroadcastReceiver barcodeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action != null && action.equals(getString(R.string.activity_intent_filter_action))) { // Użyj tej samej akcji co w TestActivity
+                String scannedData = intent.getStringExtra(getResources().getString(R.string.datawedge_intent_key_data)); // Użyj tego samego klucza co w TestActivity
+                if (scannedData != null) {
+                    processBarcodeData(scannedData);
+                }
+            }
+        }
+    };
+
     @Override
     protected void onResume() {
         super.onResume();
         String result = rfidHandler.onResume();
         Log.d("RFID", result);
+
+        IntentFilter filter = new IntentFilter(getString(R.string.activity_intent_filter_action));
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        registerReceiver(barcodeReceiver, filter);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         rfidHandler.onPause();
+        unregisterReceiver(barcodeReceiver);
     }
 
     @Override
@@ -354,14 +459,14 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             progressBar.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
 
-            if (assets == null || assets.isEmpty()) {
-                Toast.makeText(AreaDetailsActivity.this, "No assets found", Toast.LENGTH_SHORT).show();
-                return;
+            if (assets == null) {
+                Toast.makeText(AreaDetailsActivity.this, "No assets found or error fetching", Toast.LENGTH_SHORT).show();
+                assetsList.clear();
+            } else {
+                assetsList.clear();
+                assetsList.addAll(assets);
             }
-
-            assetsList.clear();
-            assetsList.addAll(assets);
-            adapter.updateAssets(assetsList, scannedAssetsList);
+            updateAdapterWithSortedList();
         }
     }
 
@@ -411,6 +516,10 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 scannedAssetsList.clear();
                 newAssetsCount = 0;
                 missingToOkCount = 0;
+                fetchAssets(locationNameText.getText().toString());
+                for(Asset asset : assetsList) {
+                    asset.setLastScannedTimestamp(0);
+                }
                 fetchAssets(locationNameText.getText().toString());
             } else {
                 Toast.makeText(AreaDetailsActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();

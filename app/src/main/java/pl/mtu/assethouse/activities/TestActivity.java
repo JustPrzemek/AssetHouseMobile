@@ -178,48 +178,9 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             initializeRfidHandler();
         } else {
-            showToastMessage("Bluetooth Permissions not granted");
+            Toast.makeText(this, "Bluetooth Permissions not granted", Toast.LENGTH_SHORT).show();
         }
     }
-
-    private void showToastMessage(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.antenna_settings) {
-            String result = rfidHandler.Test1();
-            Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
-        if (id == R.id.Singulation_control) {
-            String result = rfidHandler.Test2();
-            Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        if (id == R.id.Default) {
-            String result = rfidHandler.Defaults();
-            Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
 
     public void clearTags(View view) {
         textRfid.setText("");
@@ -244,14 +205,6 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
     protected void onPostResume() {
         super.onPostResume();
         statusTextViewRFID.setText(rfidHandler.onResume());
-    }
-
-    public void scanCode(View view) {
-        rfidHandler.scanCode();
-    }
-
-    public void testFunction(View view) {
-        rfidHandler.testFunction();
     }
 
     @Override

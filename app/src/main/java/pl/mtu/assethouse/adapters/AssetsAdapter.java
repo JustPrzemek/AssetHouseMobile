@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -21,7 +20,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import pl.mtu.assethouse.R;
-import pl.mtu.assethouse.api.ApiClient;
 import pl.mtu.assethouse.api.service.AssetService;
 import pl.mtu.assethouse.models.Asset;
 
@@ -29,14 +27,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder> {
-    private List<Asset> assetList;
-    private List<Asset> scannedAssetsList;
+    private List<Asset> combinedAssetList;
     private boolean showPlacementView = false;
     private AssetService assetService;
 
-    public AssetsAdapter(List<Asset> assetList, List<Asset> scannedAssetsList, AssetService assetsService) {
-        this.assetList = new ArrayList<>(assetList);
-        this.scannedAssetsList = new ArrayList<>(scannedAssetsList);
+    public AssetsAdapter(List<Asset> assetList, AssetService assetsService) {
+        this.combinedAssetList = new ArrayList<>(assetList);
         this.assetService = assetsService;
     }
 
@@ -174,7 +170,7 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
 
     @Override
     public int getItemCount() {
-        return assetList.size() + scannedAssetsList.size();
+        return combinedAssetList.size();
     }
 
     public void setShowPlacementView(boolean showPlacementView) {
@@ -182,16 +178,13 @@ public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder
         notifyDataSetChanged();
     }
 
-    public void updateAssets(List<Asset> newAssets, List<Asset> newScannedAssets) {
-        this.assetList = new ArrayList<>(newAssets);
-        this.scannedAssetsList = new ArrayList<>(newScannedAssets);
+    public void updateAssets(List<Asset> newAssets) {
+        this.combinedAssetList = new ArrayList<>(newAssets);
         notifyDataSetChanged();
     }
 
     private Asset getItem(int position) {
-        return position < assetList.size() ?
-                assetList.get(position) :
-                scannedAssetsList.get(position - assetList.size());
+        return combinedAssetList.get(position);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

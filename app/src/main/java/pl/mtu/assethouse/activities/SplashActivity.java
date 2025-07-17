@@ -5,15 +5,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import pl.mtu.assethouse.adapters.InventoryDataAdapter;
 import pl.mtu.assethouse.api.service.InventoryService;
-import pl.mtu.assethouse.databinding.ActivityMainBinding;
 import pl.mtu.assethouse.databinding.ActivitySplashBinding;
 
 public class SplashActivity extends AppCompatActivity {

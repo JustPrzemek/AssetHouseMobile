@@ -44,7 +44,8 @@
     <string name="inactive">Inactive</string>
     <string name="rfid_status">RFID Status:</string>
 
-
-
+<!--AreaDetailsActivity strings-->
+    <string name="description_label">Description</string>
+    <string name="placement_label">Placement</string>
 
 </resources>
