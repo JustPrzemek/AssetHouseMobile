@@ -29,7 +29,7 @@ import java.util.List;
 public class AssetsAdapter extends RecyclerView.Adapter<AssetsAdapter.ViewHolder> {
     private List<Asset> combinedAssetList;
     private boolean showPlacementView = false;
-    private AssetService assetService;
+    private final AssetService assetService;
 
     public AssetsAdapter(List<Asset> assetList, AssetService assetsService) {
         this.combinedAssetList = new ArrayList<>(assetList);

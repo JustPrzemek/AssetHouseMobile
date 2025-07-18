@@ -63,6 +63,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private Toast statusToast;
     private String currentSortParameter = "inventoryStatus";
     private Button switchModeButton;
+    private boolean isSortedByAssetIdAsc = true;
 
     private final Executor runOnUiThreadExecutor = Executors.newSingleThreadExecutor(r -> {
         Handler handler = new Handler(Looper.getMainLooper());
@@ -178,12 +179,20 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     }
 
     private void assetIdSort() {
-        if (currentSortParameter.equals("inventoryStatus")) {
-            currentSortParameter = "assetId";
+        List<Asset> combinedList = new ArrayList<>();
+        combinedList.addAll(assetsList);
+        combinedList.addAll(scannedAssetsList);
+
+        if (isSortedByAssetIdAsc) {
+            combinedList.sort((a1, a2) -> a1.getAssetId().compareToIgnoreCase(a2.getAssetId()));
         } else {
-            currentSortParameter = "inventoryStatus";
+            combinedList.sort((a1, a2) -> a2.getAssetId().compareToIgnoreCase(a1.getAssetId()));
         }
-        fetchAssets(locationNameText.getText().toString());
+
+        isSortedByAssetIdAsc = !isSortedByAssetIdAsc;
+
+        adapter.updateAssets(combinedList);
+        recyclerView.scrollToPosition(0);
     }
 
     private void fetchAssets(String location) {
@@ -321,21 +330,18 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         if (cleanedBarcode == null) return;
 
         boolean found = false;
-        // Sprawdź, czy zasób jest już na głównej liście
         for (Asset asset : assetsList) {
             if (cleanedBarcode.equals(cleanTagId(asset.getAssetId()))) {
                 if ("MISSING".equals(asset.getStatus()) || "UNSCANNED".equals(asset.getStatus())) {
                     asset.setStatus("OK");
-                    Toast.makeText(this, "Zaktualizowano: " + asset.getAssetId(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Updated: " + asset.getAssetId(), Toast.LENGTH_SHORT).show();
                 }
-                // Ustaw znacznik czasu
                 asset.setLastScannedTimestamp(System.currentTimeMillis());
                 found = true;
                 break;
             }
         }
 
-        // Jeśli nie ma na liście, sprawdź, czy to nowy zasób
         if (!found) {
             boolean alreadyScanned = scannedAssetsList.stream()
                     .anyMatch(a -> cleanedBarcode.equals(cleanTagId(a.getAssetId())));
@@ -349,16 +355,14 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                     newAsset.setStatus("NEW");
                     newAsset.setExpectedLocation(assetInfo.getLocationName());
                     newAsset.setSystemName(assetInfo.getSystemName());
-                    // Ustaw znacznik czasu
                     newAsset.setLastScannedTimestamp(System.currentTimeMillis());
                     scannedAssetsList.add(newAsset);
-                    Toast.makeText(this, "Dodano nowy: " + newAsset.getAssetId(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Added new: " + newAsset.getAssetId(), Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Nieznany kod: " + cleanedBarcode, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Unknown barcode: " + cleanedBarcode, Toast.LENGTH_SHORT).show();
                 }
             }
         }
-        // Użyj nowej metody do aktualizacji
         updateAdapterWithSortedList();
     }
 
@@ -380,8 +384,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action != null && action.equals(getString(R.string.activity_intent_filter_action))) { // Użyj tej samej akcji co w TestActivity
-                String scannedData = intent.getStringExtra(getResources().getString(R.string.datawedge_intent_key_data)); // Użyj tego samego klucza co w TestActivity
+            if (action != null && action.equals(getString(R.string.activity_intent_filter_action))) {
+                String scannedData = intent.getStringExtra(getResources().getString(R.string.datawedge_intent_key_data));
                 if (scannedData != null) {
                     processBarcodeData(scannedData);
                 }
