@@ -32,10 +32,20 @@ public class AssetService {
     }
 
     public List<Asset> getAssetsInLocation(String location, String sort) throws Exception {
+        Map<String, String> initialParams = new HashMap<>();
+        initialParams.put("location", location);
+        initialParams.put("page", "0");
+        initialParams.put("size", "1");
+        initialParams.put("sort", sort);
+
+        String initialResponse = apiClient.get("/api/locations/insideLocation", initialParams);
+        JSONObject initialJson = new JSONObject(initialResponse);
+        int totalElements = initialJson.getJSONObject("pagination").getInt("totalElements");
+
         Map<String, String> params = new HashMap<>();
         params.put("location", location);
         params.put("page", "0");
-        params.put("size", "2000"); //TODO to jeszcze zminic zeby nie bylo statycznie size
+        params.put("size", String.valueOf(totalElements));
         params.put("sort", sort);
 
         String response = apiClient.get("/api/locations/insideLocation", params);

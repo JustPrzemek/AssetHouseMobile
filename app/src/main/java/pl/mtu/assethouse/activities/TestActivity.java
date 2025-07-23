@@ -1,12 +1,18 @@
 package pl.mtu.assethouse.activities;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,13 +31,31 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
     TextView statusTextViewRFID;
     private TextView textRfid;
     private TextView scanResult;
+    private Button switchModeButton;
     private RFIDHandler rfidHandler;
+    private Button startButton;
+    private Button stopButton;
+    private Button clearButton;
+
+
+    private final BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action != null && action.equals(getString(R.string.activity_intent_filter_action))) {
+                try {
+                    displayScanResult(intent);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error displaying scan result", e);
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
-
         initializeViews();
         checkBluetoothPermissions();
     }
@@ -39,23 +63,61 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
     private void initializeViews() {
         statusTextViewRFID = findViewById(R.id.textViewStatusrfid);
         textRfid = findViewById(R.id.edittextrfid);
-        scanResult = findViewById(R.id.scanResult);
+        switchModeButton = findViewById(R.id.buttonSwitchMode);
+        startButton = findViewById(R.id.TestButton);
+        stopButton = findViewById(R.id.TestButton2);
+        clearButton = findViewById(R.id.TestButton3);
+
+
         rfidHandler = new RFIDHandler();
+
+        switchModeButton.setOnClickListener(v -> switchScanMode());
+
+        IntentFilter filter = new IntentFilter(getString(R.string.activity_intent_filter_action));
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        registerReceiver(myBroadcastReceiver, filter);
     }
 
+    private void switchScanMode() {
+        if (rfidHandler.getCurrentMode() == RFIDHandler.ScanMode.RFID) {
+            rfidHandler.setScanMode(RFIDHandler.ScanMode.BARCODE);
+            switchModeButton.setText(R.string.switch_to_rfid);
+            showToast(R.string.barcode_mode);
+
+            startButton.setEnabled(false);
+            stopButton.setEnabled(false);
+            clearButton.setEnabled(false);
+        } else {
+            rfidHandler.setScanMode(RFIDHandler.ScanMode.RFID);
+            switchModeButton.setText(R.string.switch_to_barcode);
+            showToast(R.string.rfid_mode);
+
+            startButton.setEnabled(true);
+            stopButton.setEnabled(true);
+            clearButton.setEnabled(true);
+        }
+    }
+
+    private void displayScanResult(Intent initiatingIntent)
+    {
+        String data = initiatingIntent.getStringExtra(getResources().getString(R.string.datawedge_intent_key_data));
+        String labelType = initiatingIntent.getStringExtra(getResources().getString(R.string.datawedge_intent_key_label_type));
+
+        TextView labelTypeView = findViewById(R.id.lblScanDecoder);
+        TextView scanResultView = findViewById(R.id.lblScanData);
+
+        scanResultView.setText(getString(R.string.barcode_data) + data);
+        labelTypeView.setText(getString(R.string.label_type) + labelType);
+
+    }
     private void checkBluetoothPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{
-                                Manifest.permission.BLUETOOTH_SCAN,
-                                Manifest.permission.BLUETOOTH_CONNECT
-                        },
-                        BLUETOOTH_PERMISSION_REQUEST_CODE);
-            } else {
-                initializeRfidHandler();
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT},
+                    BLUETOOTH_PERMISSION_REQUEST_CODE);
         } else {
             initializeRfidHandler();
         }
@@ -81,19 +143,21 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
 
     @Override
     public void handleTriggerPress(boolean pressed) {
-        runOnUiThread(() -> {
-            if (pressed) {
-                textRfid.setText("");
-                rfidHandler.performInventory();
-            } else {
-                rfidHandler.stopInventory();
-            }
-        });
+        if (rfidHandler.getCurrentMode() == RFIDHandler.ScanMode.RFID) {
+            runOnUiThread(() -> {
+                if (pressed) {
+                    textRfid.setText("");
+                    rfidHandler.performInventory();
+                } else {
+                    rfidHandler.stopInventory();
+                }
+            });
+        }
     }
 
     @Override
     public void barcodeData(String val) {
-        runOnUiThread(() -> scanResult.setText("Scan Result : " + val));
+        runOnUiThread(() -> scanResult.setText(R.string.barcode_data + val));
     }
 
     @Override
@@ -101,55 +165,35 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
         runOnUiThread(() -> Toast.makeText(this, val, Toast.LENGTH_SHORT).show());
     }
 
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        if(requestCode == BLUETOOTH_PERMISSION_REQUEST_CODE){
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                rfidHandler.onCreate(this);
-            }
-            else {
-                Toast.makeText(this, "Bluetooth Permissions not granted", Toast.LENGTH_SHORT).show();
-            }
-        }
+    private void showToast(int resId) {
+        Toast.makeText(this, resId, Toast.LENGTH_SHORT).show();
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == BLUETOOTH_PERMISSION_REQUEST_CODE &&
+                grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            initializeRfidHandler();
+        } else {
+            Toast.makeText(this, "Bluetooth Permissions not granted", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    public void clearTags(View view) {
+        textRfid.setText("");
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.antenna_settings) {
-            String result = rfidHandler.Test1();
-            Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
-            return true;
-        }
-
-        if (id == R.id.Singulation_control) {
-            String result = rfidHandler.Test2();
-            Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        if (id == R.id.Default) {
-            String result = rfidHandler.Defaults();
-            Toast.makeText(this,result,Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void StartInventory(View view)
+    {
+        rfidHandler.performInventory();
     }
 
-
-    public void clearTags(View view) {rfidHandler.clearTags();}
+    public void StopInventory(View view) {
+        rfidHandler.stopInventory();
+    }
 
     @Override
     protected void onPause() {
@@ -160,26 +204,7 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        String result = rfidHandler.onResume();
-        statusTextViewRFID.setText(result);
-    }
-
-    public void StartInventory(View view)
-    {
-        rfidHandler.performInventory();
-        //   rfidHandler.MultiTag();
-    }
-
-    public void scanCode(View view) {
-        rfidHandler.scanCode();
-    }
-
-    public void StopInventory(View view) {
-        rfidHandler.stopInventory();
-    }
-
-    public void testFunction(View view) {
-        rfidHandler.testFunction();
+        statusTextViewRFID.setText(rfidHandler.onResume());
     }
 
     @Override

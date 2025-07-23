@@ -1,6 +1,5 @@
 package pl.mtu.assethouse.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import pl.mtu.assethouse.R;
 import pl.mtu.assethouse.models.Area;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class AreasAdapter extends RecyclerView.Adapter<AreasAdapter.ViewHolder> {
     private List<Area> areaList;
