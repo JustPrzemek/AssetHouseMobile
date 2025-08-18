@@ -1,6 +1,6 @@
 # AssetHouse MOBILE
 
-Kr�tki opis aplikacji � aplikacja integrujaca skaner rfid zebra MC3300U, sluzaca do skanowania tag�w RFID.
+Krótki opis aplikacji – aplikacja integrujaca skaner rfid zebra MC3300U, sluzaca do skanowania tagów RFID.
 
 Wymagane uprawnienia: narazie brak
 
@@ -15,7 +15,7 @@ Narzedzie adb (Android Debug Bridge) - to tylko sluzy do uruchomienia aplikacji 
 1. Sklonuj repozytorium
 git clone //url
 	
-2. Otw�rz projekt w Android Studio
+2. Otwórz projekt w Android Studio
 - Uruchom Android Studio i wybierz "Open".
 
 - Wskaz folder sklonowanego projektu.
@@ -34,7 +34,7 @@ git clone //url
 - Podlacz telefon przez USB lub uruchom emulator z AVD Manager.
 
 5. Zbuduj i uruchom aplikacje
-- Kliknij "Run" (zielona strzalka) lub uzyj skr�tu Shift + F10.
+- Kliknij "Run" (zielona strzalka) lub uzyj skrótu Shift + F10.
 
 
 
@@ -74,6 +74,17 @@ adb shell am start -n com.example.pakiet/.MainActivity
 (Zastap com.example.pakiet swoim pakietem z AndroidManifest.xml)
 
 # Konfiguracja (opcjonalne)
-Jesli aplikacja wymaga kluczy API lub plik�w konfiguracyjnych, proxy, dodaj je np. w local.properties:
+Jesli aplikacja wymaga kluczy API lub plików konfiguracyjnych, proxy, dodaj je np. w local.properties:
 
 api.key=twoj_klucz_tutaj 
+
+
+Licencja i prawa autorskie
+
+© 2025 [Przemysław Kubas/MTU]
+
+Kod źródłowy i pliki projektu są własnością autora i nie mogą być wykorzystywane w celach komercyjnych.
+
+Zakaz modyfikowania i rozpowszechniania zmodyfikowanej wersji kodu w celach prywatnych lub publicznych bez zgody autora.
+
+Możesz używać aplikacji wyłącznie do celów edukacyjnych lub testowych.
