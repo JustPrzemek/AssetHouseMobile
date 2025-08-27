@@ -28,9 +28,11 @@ import pl.mtu.assethouse.R;
 import pl.mtu.assethouse.adapters.InventoryDataAdapter;
 import pl.mtu.assethouse.api.ApiClient;
 import pl.mtu.assethouse.api.service.AssetService;
+import pl.mtu.assethouse.api.service.ExcludedAssetsService;
 import pl.mtu.assethouse.api.service.InventoryService;
 import pl.mtu.assethouse.models.Asset;
 import pl.mtu.assethouse.models.AssetInfo;
+import pl.mtu.assethouse.models.ExcludedAssets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,6 +86,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         rfidHandler.onCreate(this);
         inventoryDataAdapter = new InventoryDataAdapter(this);
 
+        fetchExcludedAssets();
+
         initializeViews();
         setupRecyclerView();
 
@@ -97,7 +101,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         locationNameText.setText(location);
         checkInventoryAndFetchAssets(location);
     }
-
+    
     private void initializeViews() {
         locationNameText = findViewById(R.id.locationName);
         recyclerView = findViewById(R.id.recyclerView);
@@ -220,13 +224,34 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         processTagData(tagData);
     }
 
+    private void fetchExcludedAssets() {
+        if (ExcludedAssetsService.getExcludedAssetIdCache() != null) {
+            Log.d("AreaDetailsActivity", "Excluded assets loaded from cache.");
+            return;
+        }
+
+        new ExcludedAssetsService(this).fetchAllExcludedAssets(new ExcludedAssetsService.FetchDataCallback() {
+            @Override
+            public void onSuccess(List<ExcludedAssets> assets) {
+                Log.d("AreaDetailsActivity", "Successfully fetched excluded assets list.");
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(AreaDetailsActivity.this, "Warning: Could not load excluded assets list.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
     private void processTagData(TagData[] tagData) {
+
+        List<String> excluded = ExcludedAssetsService.getExcludedAssetIdCache();
+
         Set<String> scannedTagIds = Arrays.stream(tagData)
                 .map(TagData::getTagID)
                 .filter(tagId -> !tagId.isEmpty())
                 .map(this::cleanTagId)
                 .filter(Objects::nonNull)
-                .filter(tag -> !"82442-0".equals(tag))
+                .filter(tag -> excluded == null || !excluded.contains(tag))
                 .collect(Collectors.toSet());
 
         Set<String> existingAssetIds = assetsList.stream()
@@ -254,7 +279,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
         String cleaned = tagId.trim().replaceAll("\\s", "");
 
-        if ("82442-0".equals(cleaned)) {
+        List<String> excluded = ExcludedAssetsService.getExcludedAssetIdCache();
+        if (excluded != null && excluded.contains(cleaned)) {
             return null;
         }
 
