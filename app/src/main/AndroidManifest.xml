@@ -39,6 +39,7 @@
             android:windowSoftInputMode="adjustResize|stateHidden"/>
         <activity android:name="pl.mtu.assethouse.activities.AreaDetailsActivity"/>
         <activity android:name="pl.mtu.assethouse.activities.SettingsActivity" />
+        <activity android:name="pl.mtu.assethouse.activities.ExcludedAssetsActivity" />
 
         <activity
             android:name="pl.mtu.assethouse.activities.MainActivity"

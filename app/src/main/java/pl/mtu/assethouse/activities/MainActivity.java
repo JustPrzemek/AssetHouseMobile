@@ -61,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
         binding.btnAreas.setOnClickListener(v ->
                 startActivity(new Intent(this, AreasActivity.class)));
 
+        binding.btnExcludedAssets.setOnClickListener(v ->
+                startActivity(new Intent(this, ExcludedAssetsActivity.class)));
+
         binding.btnSettings.setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
     }
