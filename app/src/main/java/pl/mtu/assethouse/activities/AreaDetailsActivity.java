@@ -444,11 +444,6 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     }
 
     @Override
-    public void barcodeData(String val) {
-
-    }
-
-    @Override
     public void sendToast(String val) {
         runOnUiThread(() -> {
             if (statusToast != null) {

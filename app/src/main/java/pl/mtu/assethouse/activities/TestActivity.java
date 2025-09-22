@@ -156,11 +156,6 @@ public class TestActivity extends AppCompatActivity implements RFIDHandler.Respo
     }
 
     @Override
-    public void barcodeData(String val) {
-        runOnUiThread(() -> scanResult.setText(R.string.barcode_data + val));
-    }
-
-    @Override
     public void sendToast(String val) {
         runOnUiThread(() -> Toast.makeText(this, val, Toast.LENGTH_SHORT).show());
     }
