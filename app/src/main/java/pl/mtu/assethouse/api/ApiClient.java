@@ -121,7 +121,7 @@ public class ApiClient {
     public String getPredefinedComments() throws IOException {
         HttpURLConnection connection = null;
         try {
-            URL url = new URL(baseUrl + "/api/mobile/predefinedComments/language=ENG");
+            URL url = new URL(baseUrl + "/api/mobile/predefinedComments?language=EN");
 
             if (baseUrl.contains("https")) {
                 connection = (HttpsURLConnection) url.openConnection();
