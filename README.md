@@ -73,11 +73,6 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.example.pakiet/.MainActivity
 (Zastap com.example.pakiet swoim pakietem z AndroidManifest.xml)
 
-# Konfiguracja (opcjonalne)
-Jesli aplikacja wymaga kluczy API lub plików konfiguracyjnych, proxy, dodaj je np. w local.properties:
-
-api.key=twoj_klucz_tutaj 
-
 
 Licencja i prawa autorskie
 
@@ -88,3 +83,4 @@ Kod źródłowy i pliki projektu są własnością autora i nie mogą być wykor
 Zakaz modyfikowania i rozpowszechniania zmodyfikowanej wersji kodu w celach prywatnych lub publicznych bez zgody autora.
 
 Możesz używać aplikacji wyłącznie do celów edukacyjnych lub testowych.
+
