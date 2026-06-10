@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -508,6 +509,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private class SaveAssetsTask extends AsyncTask<Void, Void, Boolean> {
 
         private String errorMessage = "Unknown error";
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            saveButton.setEnabled(false);
+            saveButton.setText("SAVING...");
+            saveButton.setTextColor(Color.WHITE);
+        }
+
         @Override
         protected Boolean doInBackground(Void... voids) {
             try {
@@ -536,16 +546,18 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
 
         @Override
         protected void onPostExecute(Boolean success) {
+            saveButton.setEnabled(true);
+            saveButton.setText("SAVE");
+
             if (success) {
                 Toast.makeText(AreaDetailsActivity.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
                 scannedAssetsList.clear();
                 newAssetsCount = 0;
                 missingToOkCount = 0;
                 fetchAssets(locationNameText.getText().toString());
-                for(Asset asset : assetsList) {
+                for (Asset asset : assetsList) {
                     asset.setLastScannedTimestamp(0);
                 }
-                fetchAssets(locationNameText.getText().toString());
             } else {
                 Toast.makeText(AreaDetailsActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
             }
