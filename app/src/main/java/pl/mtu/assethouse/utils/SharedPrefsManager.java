@@ -6,7 +6,9 @@ import android.content.SharedPreferences;
 public class SharedPrefsManager {
     private static final String PREFS_NAME = "AppSettings";
     private static final String BASE_URL_KEY = "BASE_URL";
-    private static final String DEFAULT_URL = "https://rze-assethouse-t:8443/rfidentity";
+    public static final String QA_URL = "https://rze-assethouse-t:8443/rfidentity";
+    public static final String PROD_URL = "https://rze-assethouse-p:8443/rfidentity";
+    private static final String DEFAULT_URL = PROD_URL;
     private static final String INVENTORY_DATA_KEY = "INVENTORY_DATA";
     private static final String INVENTORY_ID_KEY = "INVENTORY_ID";
 
