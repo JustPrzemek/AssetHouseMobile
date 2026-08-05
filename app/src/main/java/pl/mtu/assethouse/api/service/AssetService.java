@@ -67,8 +67,12 @@ public class AssetService {
                 .map(Asset::getAssetId)
                 .collect(Collectors.toSet());
 
+        List<String> excluded = ExcludedAssetsService.getExcludedAssetIdCache();
+
         for (Asset asset : assets) {
-            if ("UNSCANNED".equals(asset.getStatus()) && !scannedAssetIds.contains(asset.getAssetId())) {
+            if (excluded != null && excluded.contains(asset.getAssetId())) {
+                asset.setStatus("OK");
+            } else if ("UNSCANNED".equals(asset.getStatus()) && !scannedAssetIds.contains(asset.getAssetId())) {
                 asset.setStatus("MISSING");
             }
         }

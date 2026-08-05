@@ -99,6 +99,12 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             return;
         }
 
+        if (location.toUpperCase().contains("HOME OFFICE")) {
+            Toast.makeText(this, "Access denied to Home Office", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         locationNameText.setText(location);
         checkInventoryAndFetchAssets(location);
     }
@@ -235,6 +241,23 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             @Override
             public void onSuccess(List<ExcludedAssets> assets) {
                 Log.d("AreaDetailsActivity", "Successfully fetched excluded assets list.");
+                runOnUiThread(() -> {
+                    boolean updated = false;
+                    List<String> excluded = ExcludedAssetsService.getExcludedAssetIdCache();
+                    if (excluded != null) {
+                        for (Asset asset : assetsList) {
+                            if (excluded.contains(asset.getAssetId())) {
+                                if (!"OK".equals(asset.getStatus())) {
+                                    asset.setStatus("OK");
+                                    updated = true;
+                                }
+                            }
+                        }
+                    }
+                    if (updated) {
+                        updateAdapterWithSortedList();
+                    }
+                });
             }
 
             @Override
@@ -467,8 +490,11 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                         .map(Asset::getAssetId)
                         .collect(Collectors.toSet());
 
+                List<String> excluded = ExcludedAssetsService.getExcludedAssetIdCache();
                 for (Asset asset : assets) {
                     if (scannedAssetIds.contains(asset.getAssetId())) {
+                        asset.setStatus("OK");
+                    } else if (excluded != null && excluded.contains(asset.getAssetId())) {
                         asset.setStatus("OK");
                     }
                 }

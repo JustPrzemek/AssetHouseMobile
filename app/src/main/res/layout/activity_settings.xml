@@ -16,14 +16,39 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="URL FOR API CALLS"/>
+        android:text="URL FOR API CALLS"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/radioGroupEnv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+        <RadioButton
+            android:id="@+id/radioQa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="QA (Test)" />
+        <RadioButton
+            android:id="@+id/radioProd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PROD (Production)" />
+        <RadioButton
+            android:id="@+id/radioCustom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Custom URL" />
+    </RadioGroup>
 
     <EditText
         android:id="@+id/editBaseUrl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter API Base URL"
-        android:inputType="textUri" />
+        android:inputType="textUri"
+        android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/btnSave"

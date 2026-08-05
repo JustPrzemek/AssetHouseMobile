@@ -36,7 +36,13 @@ public class AreaService {
         List<Area> areas = new ArrayList<>();
         for (int i = 0; i < content.length(); i++) {
             JSONObject areaJson = content.getJSONObject(i);
-            areas.add(new Area(areaJson));
+            Area area = new Area(areaJson);
+            
+            if (area.getLocation() != null && area.getLocation().toUpperCase().contains("HOME OFFICE")) {
+                continue;
+            }
+            
+            areas.add(area);
         }
 
         JSONObject pagination = jsonResponse.getJSONObject("pagination");
