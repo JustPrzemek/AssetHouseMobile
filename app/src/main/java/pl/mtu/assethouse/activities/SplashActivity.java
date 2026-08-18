@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import pl.mtu.assethouse.api.service.InventoryService;
 import pl.mtu.assethouse.databinding.ActivitySplashBinding;
+import pl.mtu.assethouse.utils.DeviceIdProvider;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -29,6 +30,10 @@ public class SplashActivity extends AppCompatActivity {
 
         inventoryService = new InventoryService(this);
         handler = new Handler(Looper.getMainLooper());
+
+        // Resolve the scanner identity early so it is ready before any room is opened.
+        // Non-blocking: a usable fallback is in place immediately either way.
+        DeviceIdProvider.resolveAsync(this, null);
 
         loadData();
     }

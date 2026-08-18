@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
     <TextView
@@ -62,4 +67,51 @@
         android:text="Restore Default"
         android:layout_marginTop="8dp"/>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#CCCCCC"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DEVICE ID"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Register this value in the web app to identify this scanner."
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/textDeviceId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textIsSelectable="true"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:padding="12dp"
+        android:background="@drawable/edittext_background"
+        tools:text="23163523021979"/>
+
+    <TextView
+        android:id="@+id/textDeviceIdSource"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp"
+        tools:text="Source: Serial number"/>
+
+    <Button
+        android:id="@+id/btnCopyDeviceId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Copy Device ID"
+        android:layout_marginTop="8dp"/>
+
 </LinearLayout>
+</ScrollView>

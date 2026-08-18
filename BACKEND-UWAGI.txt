@@ -1,0 +1,136 @@
+UWAGI DO BACKENDU (rfidentity 1.0.6-SNAPSHOT)
+=============================================
+Data: 2026-08-18
+Zrodlo: lokalne uruchomienie backend/rfidentity.war na Tomcat 10.1.31 + PostgreSQL 16.4,
+        testowane realna aplikacja mobilna na skanerze Zebra MC3300x (serial 23163523021979).
+
+
+1. BLAD: nieznany pokoj zwraca 401 zamiast 404
+----------------------------------------------
+Objaw:
+  GET /api/mobile/insideLocation?location=NO_SUCH_ROOM&deviceId=...
+  -> HTTP 401, naglowek "www-authenticate: Bearer", content-length: 0
+
+Backend poprawnie wykrywa blad i loguje:
+  ERROR [p.m.s.e.GlobalExceptionHandler] - Entity not found:
+  jakarta.persistence.EntityNotFoundException: Location 'NO_SUCH_ROOM' not found for inventory ID 1
+
+Przyczyna (wywnioskowana z bytecodu GlobalExceptionHandler.class + zachowania,
+NIE ze zrodel - warto potwierdzic w repo backendu):
+
+  handleEntityNotFoundException(EntityNotFoundException) -> ErrorResponse
+
+  zwraca gole ErrorResponse, a nie ResponseEntity. Odpowiedz nie ma ciala
+  (content-length: 0), wiec puste 404 jest przekierowywane przez
+  Spring Boot ErrorPageFilter na /error. Sciezka /error nie jest w permitAll
+  w SecurityConfig, wiec OAuth2 resource server zwraca 401.
+
+  Kontrast potwierdzajacy: handlery uzywajace ResponseEntity/BodyBuilder dzialaja
+  poprawnie - np. pusty deviceId zwraca prawidlowo:
+  {"statusCode":400,"message":"Device ID is required",...}
+
+Proponowana poprawka:
+  handleEntityNotFoundException ma zwracac
+  ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse)
+  - dokladnie tak jak handler od 400.
+
+  Alternatywa (leczy objaw, nie przyczyne): dodac /error do permitAll w SecurityConfig.
+
+Wplyw na aplikacje mobilna:
+  Apka obsluguje 404 jako "nieaktualny inwentarz" i pokazuje komunikat
+  z prosba o restart. Dopoki backend zwraca 401, ten komunikat sie NIE pokaze.
+  Kod mobilny zostaje zgodny ze specyfikacja (404) - czeka na poprawke backendu.
+
+
+2. BLAD: brak parametru deviceId zwraca 500 zamiast 400
+-------------------------------------------------------
+  GET /api/mobile/insideLocation?location=ROOM%20A   (bez deviceId)
+  -> HTTP 500
+  {"statusCode":500,"message":"Required request parameter 'deviceId' for method
+    parameter type String is not present"}
+
+  MissingServletRequestParameterException nie jest zmapowany na 400.
+
+  Uwaga: PUSTY deviceId (deviceId=) dziala poprawnie -> 400 "Device ID is required".
+  Chodzi wylacznie o calkowity brak parametru.
+
+  Aplikacji mobilnej to nie dotyczy (zawsze wysyla niepusty deviceId),
+  ale kontrakt mowi 400.
+
+
+3. LIMIT 1000 NA STRONE (do swiadomej decyzji)
+----------------------------------------------
+  Serwer tnie parametr size do 1000 niezaleznie od zadania:
+
+    size=1000 -> pagination.size=1000, zwrocone 1000
+    size=2000 -> pagination.size=1000, zwrocone 1000
+    size=5000 -> pagination.size=1000, zwrocone 1000
+    (przy totalElements=1201)
+
+  Prawdopodobnie spring.data.web.pageable.max-page-size.
+
+  KONSEKWENCJA: pokoj powyzej 1000 assetow wymaga kilku zapytan, a kazde
+  zapytanie to osobny rekord w scanner_activity (log jest append-only).
+  Pokoj 1201 assetow = 2 rekordy INSIDE_LOCATION na jedno wejscie.
+
+  To bylo tez zrodlem cichego gubienia danych w aplikacji mobilnej
+  (stary kod prosil o size=totalElements i dostawal max 1000) - poprawione
+  po stronie apki przez dociaganie kolejnych stron.
+
+
+4. CERTYFIKAT W TOMCACIE (dev leftover)
+---------------------------------------
+  conf/security/keystore.jks:
+    Owner: CN=John Doe, OU=FIND, O=MTU, L=RZE, ST=Unknown, C=PL
+    Valid from: Tue Dec 17 2024 until: Mon Mar 17 2025   <-- WYGASLY
+    brak SAN
+
+  Aplikacja mobilna wywoluje SSLHelper.trustAllCertificates(), ktore nadpisuje
+  TrustManagera, ale NIE HostnameVerifiera. Przy tym certyfikacie apka dostaje:
+    javax.net.ssl.SSLPeerUnverifiedException: Hostname 127.0.0.1 not verified
+
+  Na czas testow podlozony zostal keystore-localtest.jks (CN=localhost,
+  SAN=IP:127.0.0.1,DNS:localhost). Oryginalny keystore nietkniety,
+  backup konfiguracji: conf/server.xml.orig
+
+
+5. CO ZWERYFIKOWANO POZYTYWNIE
+------------------------------
+  - Flyway: 60 migracji, do wersji 1.73 "add scanner identity and activity"
+  - tabela scanner_activity: id, inventory_id, device_id, event_type,
+    location_id, location_name, asset_count, created_userkey, occurred_at
+  - jest to log APPEND-ONLY, bez dedup: 1 zapytanie = 1 rekord
+  - wejscie do zwyklego pokoju (<=1000 assetow) = dokladnie 1 rekord INSIDE_LOCATION
+  - POST /api/mobile/updateOutcome z deviceId -> 204 + rekord OUTCOME_UPDATE
+    z asset_count
+  - POST /api/mobile/updateOutcome BEZ deviceId -> 204, brak rekordu
+    (kompatybilnosc wsteczna zachowana)
+  - serial Zebry (23163523021979) poprawnie zapisany w device_id
+  - endpoint /ws-connect odpowiada 200 (mechanizm STOMP istnieje po stronie
+    backendu; aplikacja mobilna go NIE uzywa - mozna go usuwac bez wplywu na apke)
+
+
+6. JAK URUCHOMIC LOKALNIE (srodowisko juz przygotowane)
+-------------------------------------------------------
+  WAR wymaga Javy 21 (class file 65.0) - Tomcat startuje na Temurin 21.
+  Android SDK/Gradle dziala dalej na Javie 17 - to sa dwa osobne JDK.
+
+  PostgreSQL (user-local, bez roota):
+    /home/adam/pgsql/bin/pg_ctl -D /home/adam/pgdata -l /home/adam/pgdata/server.log -o "-p 5432 -k /tmp" start
+    /home/adam/pgsql/bin/pg_ctl -D /home/adam/pgdata stop
+    baza: rfidentity / uzytkownik: postgres / haslo: postgres
+
+  Tomcat:
+    /home/adam/tomcat-assethouse/apache-tomcat-10.1.31/bin/startup.sh
+    /home/adam/tomcat-assethouse/apache-tomcat-10.1.31/bin/shutdown.sh
+    backend:  https://127.0.0.1:8443/rfidentity
+    frontend: https://127.0.0.1:8443/AssetHouse
+
+  Zmiany konieczne na Linuksie (juz zrobione):
+    - conf/server.xml: sciezka do keystore z "conf\security\..." na "conf/security/..."
+    - dodany bin/setenv.sh (odpowiednik setenv.bat) z -Dlogs.file.location
+    - JAVA_HOME ustawiony na JDK 21
+
+  Telefon -> lokalny backend:
+    adb reverse tcp:8443 tcp:8443
+    w apce: Settings -> Custom URL -> https://127.0.0.1:8443/rfidentity

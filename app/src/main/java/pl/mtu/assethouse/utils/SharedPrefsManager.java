@@ -11,6 +11,8 @@ public class SharedPrefsManager {
     private static final String DEFAULT_URL = PROD_URL;
     private static final String INVENTORY_DATA_KEY = "INVENTORY_DATA";
     private static final String INVENTORY_ID_KEY = "INVENTORY_ID";
+    private static final String DEVICE_ID_KEY = "DEVICE_ID";
+    private static final String DEVICE_ID_SOURCE_KEY = "DEVICE_ID_SOURCE";
 
     private final SharedPreferences sharedPreferences;
 
@@ -47,5 +49,20 @@ public class SharedPrefsManager {
 
     public boolean hasInventoryData() {
         return sharedPreferences.contains(INVENTORY_DATA_KEY);
+    }
+
+    public String getDeviceId() {
+        return sharedPreferences.getString(DEVICE_ID_KEY, null);
+    }
+
+    public String getDeviceIdSource() {
+        return sharedPreferences.getString(DEVICE_ID_SOURCE_KEY, null);
+    }
+
+    public void saveDeviceId(String deviceId, String source) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(DEVICE_ID_KEY, deviceId);
+        editor.putString(DEVICE_ID_SOURCE_KEY, source);
+        editor.apply();
     }
 }

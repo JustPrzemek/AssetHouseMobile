@@ -28,6 +28,7 @@ import pl.mtu.assethouse.adapters.AssetsAdapter;
 import pl.mtu.assethouse.R;
 import pl.mtu.assethouse.adapters.InventoryDataAdapter;
 import pl.mtu.assethouse.api.ApiClient;
+import pl.mtu.assethouse.api.ApiException;
 import pl.mtu.assethouse.api.service.AssetService;
 import pl.mtu.assethouse.api.service.ExcludedAssetsService;
 import pl.mtu.assethouse.api.service.InventoryService;
@@ -481,6 +482,9 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     //END OF RFID HANDLING
 
     private class FetchAssetsTask extends AsyncTask<String, Void, List<Asset>> {
+
+        private String errorMessage = "No assets found or error fetching";
+
         @Override
         protected List<Asset> doInBackground(String... params) {
             try {
@@ -500,6 +504,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 }
 
                 return assets;
+            } catch (ApiException e) {
+                Log.e("FetchAssets", "Error fetching assets", e);
+                if (e.getStatusCode() == 404) {
+                    errorMessage = "Room \"" + params[0] + "\" is not in the current inventory.\n"
+                            + "Your inventory data may be out of date - please restart the app to refresh.";
+                } else if (e.getStatusCode() == 400) {
+                    errorMessage = "Device not identified by the server.\nCheck the device ID in Settings.";
+                }
+                return null;
             } catch (Exception e) {
                 Log.e("FetchAssets", "Error fetching assets", e);
                 return null;
@@ -511,11 +524,10 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             progressBar.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
 
+            assetsList.clear();
             if (assets == null) {
-                Toast.makeText(AreaDetailsActivity.this, "No assets found or error fetching", Toast.LENGTH_SHORT).show();
-                assetsList.clear();
+                Toast.makeText(AreaDetailsActivity.this, errorMessage, Toast.LENGTH_LONG).show();
             } else {
-                assetsList.clear();
                 assetsList.addAll(assets);
             }
             updateAdapterWithSortedList();
