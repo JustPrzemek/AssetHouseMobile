@@ -102,7 +102,7 @@ public class ApiClient {
 
             if (responseCode >= 400) {
                 Log.e(TAG, "Request failed: HTTP " + responseCode + ", body: " + response);
-                throw new IOException("HTTP error " + responseCode + ": " + response.toString());
+                throw new ApiException(responseCode, response.toString());
             }
 
             return response.toString();

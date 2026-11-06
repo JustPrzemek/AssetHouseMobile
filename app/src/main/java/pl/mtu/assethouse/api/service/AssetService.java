@@ -5,6 +5,7 @@ import android.content.Context;
 import lombok.Getter;
 import pl.mtu.assethouse.api.ApiClient;
 import pl.mtu.assethouse.models.Asset;
+import pl.mtu.assethouse.utils.DeviceIdProvider;
 import pl.mtu.assethouse.utils.SharedPrefsManager;
 
 import org.json.JSONArray;
@@ -19,8 +20,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AssetService {
+    private static final String INSIDE_LOCATION_ENDPOINT = "/api/mobile/insideLocation";
+
+    // The backend caps page size at 1000, and every request records a scanner-entry event.
+    private static final int REQUESTED_PAGE_SIZE = 1000;
+
     private final ApiClient apiClient;
     private final SharedPrefsManager prefsManager;
+    private final Context context;
     @Getter
     private int currentInventoryId = -1;
     private List<String> predefinedComments = new ArrayList<>();
@@ -29,35 +36,41 @@ public class AssetService {
     public AssetService(Context context) {
         this.apiClient = new ApiClient(context);
         this.prefsManager = new SharedPrefsManager(context);
+        this.context = context.getApplicationContext();
     }
 
     public List<Asset> getAssetsInLocation(String location, String sort) throws Exception {
-        Map<String, String> initialParams = new HashMap<>();
-        initialParams.put("location", location);
-        initialParams.put("page", "0");
-        initialParams.put("size", "1");
-        initialParams.put("sort", sort);
-
-        String initialResponse = apiClient.get("/api/locations/insideLocation", initialParams);
-        JSONObject initialJson = new JSONObject(initialResponse);
-        int totalElements = initialJson.getJSONObject("pagination").getInt("totalElements");
-
         Map<String, String> params = new HashMap<>();
         params.put("location", location);
         params.put("page", "0");
-        params.put("size", String.valueOf(totalElements));
+        params.put("size", String.valueOf(REQUESTED_PAGE_SIZE));
         params.put("sort", sort);
+        params.put("deviceId", DeviceIdProvider.get(context));
 
-        String response = apiClient.get("/api/locations/insideLocation", params);
-
-        JSONObject jsonResponse = new JSONObject(response);
+        JSONObject jsonResponse = new JSONObject(apiClient.get(INSIDE_LOCATION_ENDPOINT, params));
         this.currentInventoryId = jsonResponse.getInt("inventoryId");
-        JSONArray content = jsonResponse.getJSONArray("content");
 
+        List<Asset> assets = parseAssets(jsonResponse);
+        int totalElements = jsonResponse.getJSONObject("pagination").getInt("totalElements");
+
+        // Room larger than the server cap: pull the rest, or assets go missing from the stocktake.
+        for (int page = 1; assets.size() < totalElements; page++) {
+            params.put("page", String.valueOf(page));
+            List<Asset> nextPage = parseAssets(new JSONObject(apiClient.get(INSIDE_LOCATION_ENDPOINT, params)));
+            if (nextPage.isEmpty()) {
+                break;
+            }
+            assets.addAll(nextPage);
+        }
+
+        return assets;
+    }
+
+    private List<Asset> parseAssets(JSONObject jsonResponse) throws JSONException {
+        JSONArray content = jsonResponse.getJSONArray("content");
         List<Asset> assets = new ArrayList<>();
         for (int i = 0; i < content.length(); i++) {
-            JSONObject assetJson = content.getJSONObject(i);
-            assets.add(new Asset(assetJson));
+            assets.add(new Asset(content.getJSONObject(i)));
         }
         return assets;
     }
@@ -81,6 +94,7 @@ public class AssetService {
         requestBody.put("location", location);
         requestBody.put("user", "MOBILE");
         requestBody.put("inventoryId", currentInventoryId);
+        requestBody.put("deviceId", DeviceIdProvider.get(context));
 
         JSONArray assetsArray = new JSONArray();
         addAssetsToArray(assetsArray, assets);

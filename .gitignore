@@ -48,3 +48,5 @@ proguard-rules.pro
 # Android NDK
 ndkBuild/
 local.properties
+# Lokalne srodowisko backendu (WAR + Tomcat, ~286MB - nie do repo)
+backend/

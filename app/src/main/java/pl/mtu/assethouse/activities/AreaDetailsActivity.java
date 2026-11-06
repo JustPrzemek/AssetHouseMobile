@@ -28,6 +28,7 @@ import pl.mtu.assethouse.adapters.AssetsAdapter;
 import pl.mtu.assethouse.R;
 import pl.mtu.assethouse.adapters.InventoryDataAdapter;
 import pl.mtu.assethouse.api.ApiClient;
+import pl.mtu.assethouse.api.ApiException;
 import pl.mtu.assethouse.api.service.AssetService;
 import pl.mtu.assethouse.api.service.ExcludedAssetsService;
 import pl.mtu.assethouse.api.service.InventoryService;
@@ -67,6 +68,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     private String currentSortParameter = "inventoryStatus";
     private Button switchModeButton;
     private boolean isSortedByAssetIdAsc = true;
+    private TextView emptyStateText;
+    private boolean assetsLoaded = false;
 
     private final Executor runOnUiThreadExecutor = Executors.newSingleThreadExecutor(r -> {
         Handler handler = new Handler(Looper.getMainLooper());
@@ -87,8 +90,6 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         rfidHandler.onCreate(this);
         inventoryDataAdapter = new InventoryDataAdapter(this);
 
-        fetchExcludedAssets();
-
         initializeViews();
         setupRecyclerView();
 
@@ -106,7 +107,9 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         }
 
         locationNameText.setText(location);
-        checkInventoryAndFetchAssets(location);
+
+        // Exclusions must settle before assets load, otherwise statuses flash and get corrected.
+        fetchExcludedAssets(() -> checkInventoryAndFetchAssets(location));
     }
     
     private void initializeViews() {
@@ -117,9 +120,10 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         saveButton = findViewById(R.id.saveButton);
         toggleText = findViewById(R.id.toggleText);
         assetIdSortButton = findViewById(R.id.assetIdSortButton);
+        emptyStateText = findViewById(R.id.emptyStateText);
 
 
-        saveButton.setOnClickListener(v -> saveAssets());
+        updateSaveButtonState();
         toggleText.setOnClickListener(v -> toggleViewType());
         assetIdSortButton.setOnClickListener(v -> assetIdSort());
 
@@ -156,6 +160,8 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                     runOnUiThread(this::restartApplication);
                     return;
                 }
+
+                inventoryDataAdapter.getAssetIds();
 
                 runOnUiThread(() -> fetchAssets(location));
             } catch (Exception e) {
@@ -223,6 +229,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         runOnUiThread(() -> {
             adapter.updateAssets(combinedList);
             recyclerView.scrollToPosition(0);
+            emptyStateText.setVisibility(assetsLoaded && combinedList.isEmpty() ? View.VISIBLE : View.GONE);
         });
     }
     // RFID Handling methods
@@ -231,12 +238,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         processTagData(tagData);
     }
 
-    private void fetchExcludedAssets() {
-        if (ExcludedAssetsService.getExcludedAssetIdCache() != null) {
-            Log.d("AreaDetailsActivity", "Excluded assets loaded from cache.");
-            return;
-        }
-
+    private void fetchExcludedAssets(Runnable onFinished) {
         new ExcludedAssetsService(this).fetchAllExcludedAssets(new ExcludedAssetsService.FetchDataCallback() {
             @Override
             public void onSuccess(List<ExcludedAssets> assets) {
@@ -257,14 +259,39 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                     if (updated) {
                         updateAdapterWithSortedList();
                     }
+                    updateSaveButtonState();
+                    if (onFinished != null) {
+                        onFinished.run();
+                    }
                 });
             }
 
             @Override
             public void onError(String message) {
-                Toast.makeText(AreaDetailsActivity.this, "Warning: Could not load excluded assets list.", Toast.LENGTH_LONG).show();
+                Log.e("AreaDetailsActivity", "Could not load excluded assets list: " + message);
+                Toast.makeText(AreaDetailsActivity.this,
+                        "Could not load the exclusion list.\nSaving is blocked - tap the button below to retry.",
+                        Toast.LENGTH_LONG).show();
+                updateSaveButtonState();
+                if (onFinished != null) {
+                    onFinished.run();
+                }
             }
         });
+    }
+
+    private void updateSaveButtonState() {
+        if (ExcludedAssetsService.isCacheLoaded()) {
+            saveButton.setText("SAVE");
+            saveButton.setOnClickListener(v -> saveAssets());
+        } else {
+            saveButton.setText("RETRY EXCLUSION LIST");
+            saveButton.setOnClickListener(v -> {
+                saveButton.setEnabled(false);
+                saveButton.setText("LOADING...");
+                fetchExcludedAssets(() -> saveButton.setEnabled(true));
+            });
+        }
     }
     private void processTagData(TagData[] tagData) {
 
@@ -284,11 +311,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        inventoryDataAdapter = new InventoryDataAdapter(this);
-        List<AssetInfo> allAssetsInPrefs = inventoryDataAdapter.getAllAssets();
-        Set<String> prefsAssetIds = allAssetsInPrefs.stream()
-                .map(AssetInfo::getAssetId)
-                .collect(Collectors.toSet());
+        Set<String> prefsAssetIds = inventoryDataAdapter.getAssetIds();
 
         updateAssetStatuses(scannedTagIds, existingAssetIds);
         addNewAssets(scannedTagIds, existingAssetIds, prefsAssetIds);
@@ -481,6 +504,9 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     //END OF RFID HANDLING
 
     private class FetchAssetsTask extends AsyncTask<String, Void, List<Asset>> {
+
+        private String errorMessage = "No assets found or error fetching";
+
         @Override
         protected List<Asset> doInBackground(String... params) {
             try {
@@ -500,6 +526,15 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
                 }
 
                 return assets;
+            } catch (ApiException e) {
+                Log.e("FetchAssets", "Error fetching assets", e);
+                if (e.getStatusCode() == 404) {
+                    errorMessage = "Room \"" + params[0] + "\" is not in the current inventory.\n"
+                            + "Your inventory data may be out of date - please restart the app to refresh.";
+                } else if (e.getStatusCode() == 400) {
+                    errorMessage = "Device not identified by the server.\nCheck the device ID in Settings.";
+                }
+                return null;
             } catch (Exception e) {
                 Log.e("FetchAssets", "Error fetching assets", e);
                 return null;
@@ -511,11 +546,12 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
             progressBar.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
 
+            assetsList.clear();
             if (assets == null) {
-                Toast.makeText(AreaDetailsActivity.this, "No assets found or error fetching", Toast.LENGTH_SHORT).show();
-                assetsList.clear();
+                assetsLoaded = false;
+                Toast.makeText(AreaDetailsActivity.this, errorMessage, Toast.LENGTH_LONG).show();
             } else {
-                assetsList.clear();
+                assetsLoaded = true;
                 assetsList.addAll(assets);
             }
             updateAdapterWithSortedList();
@@ -523,6 +559,14 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
     }
 
     private void saveAssets() {
+        if (!ExcludedAssetsService.isCacheLoaded()) {
+            Toast.makeText(this,
+                    "Cannot save: the exclusion list is unavailable.\nExcluded assets would be reported as MISSING.",
+                    Toast.LENGTH_LONG).show();
+            updateSaveButtonState();
+            return;
+        }
+
         missingToOkCount = (int) assetsList.stream()
                 .filter(a -> "MISSING".equals(a.getStatus()))
                 .count();
@@ -573,7 +617,7 @@ public class AreaDetailsActivity extends AppCompatActivity implements RFIDHandle
         @Override
         protected void onPostExecute(Boolean success) {
             saveButton.setEnabled(true);
-            saveButton.setText("SAVE");
+            updateSaveButtonState();
 
             if (success) {
                 Toast.makeText(AreaDetailsActivity.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();

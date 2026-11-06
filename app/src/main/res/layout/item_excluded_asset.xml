@@ -7,6 +7,21 @@
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/scannerBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SCANNER"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/rounded_item_bg_new"
+        android:visibility="gone" />
+
+    <TextView
         android:id="@+id/assetIdTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,5 +35,12 @@
         android:layout_height="wrap_content"
         android:textSize="14sp"
         android:text="Description: " />
+
+    <TextView
+        android:id="@+id/deviceIdTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:visibility="gone" />
 
 </LinearLayout>

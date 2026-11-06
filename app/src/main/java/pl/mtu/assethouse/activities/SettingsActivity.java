@@ -1,16 +1,21 @@
 package pl.mtu.assethouse.activities;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import pl.mtu.assethouse.R;
+import pl.mtu.assethouse.utils.DeviceIdProvider;
 import pl.mtu.assethouse.utils.SharedPrefsManager;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -55,6 +60,29 @@ public class SettingsActivity extends AppCompatActivity {
 
         btnSave.setOnClickListener(v -> saveSettings());
         btnRestoreDefault.setOnClickListener(v -> restoreDefaults());
+
+        showDeviceId();
+    }
+
+    private void showDeviceId() {
+        TextView textDeviceId = findViewById(R.id.textDeviceId);
+        TextView textDeviceIdSource = findViewById(R.id.textDeviceIdSource);
+        Button btnCopyDeviceId = findViewById(R.id.btnCopyDeviceId);
+
+        String deviceId = DeviceIdProvider.get(this);
+        textDeviceId.setText(deviceId);
+        textDeviceIdSource.setText("Source: " + DeviceIdProvider.getSource(this));
+
+        View.OnClickListener copyListener = v -> {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (clipboard != null) {
+                clipboard.setPrimaryClip(ClipData.newPlainText("Device ID", deviceId));
+                Toast.makeText(this, "Device ID copied", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        btnCopyDeviceId.setOnClickListener(copyListener);
+        textDeviceId.setOnClickListener(copyListener);
     }
 
     private final RadioGroup.OnCheckedChangeListener envChangeListener = new RadioGroup.OnCheckedChangeListener() {
