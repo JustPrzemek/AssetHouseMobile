@@ -9,17 +9,8 @@ import com.zebra.deviceidentifierswrapper.IDIResultCallbacks;
 
 import java.util.UUID;
 
-/**
- * Single source of the stable identifier this scanner reports to the backend.
- * <p>
- * Preferred value is the Zebra serial number printed on the device label, so an administrator
- * can register the scanner in the web app by reading the hardware. If that is unavailable
- * (non-Zebra hardware, EMDK service missing, MX registration refused) we fall back to
- * {@link Settings.Secure#ANDROID_ID} so the app keeps working.
- * <p>
- * Resolved once and cached — call {@link #resolveAsync} at startup, then {@link #get} anywhere.
- * Swap the serial lookup here and no call site needs to change.
- */
+// Stable identifier this scanner reports to the backend: the Zebra serial number printed on the
+// device label, falling back to ANDROID_ID where that is unavailable. Resolved once and cached.
 public class DeviceIdProvider {
     private static final String TAG = "DeviceIdProvider";
     private static final int MAX_LENGTH = 64;
@@ -33,16 +24,7 @@ public class DeviceIdProvider {
     private DeviceIdProvider() {
     }
 
-    /**
-     * Resolves the identifier if it is not already known. Returns immediately; the serial lookup
-     * is asynchronous. A usable fallback is always in place before this returns, so callers of
-     * {@link #get} never block and never see a blank value.
-     * <p>
-     * A previously resolved serial is never looked up again. A previously resolved fallback IS
-     * retried, so a transient EMDK failure does not pin this device to the wrong identifier.
-     *
-     * @param onResolved optional, run when the serial lookup settles. May run on any thread.
-     */
+    // A resolved serial is never re-queried; a fallback is retried on every cold start.
     public static void resolveAsync(Context context, Runnable onResolved) {
         SharedPrefsManager prefsManager = new SharedPrefsManager(context);
 
@@ -65,9 +47,6 @@ public class DeviceIdProvider {
         requestSerialNumber(context, prefsManager, onResolved);
     }
 
-    /**
-     * The identifier to send to the backend. Never null, never blank.
-     */
     public static String get(Context context) {
         if (!isUsable(cachedId)) {
             SharedPrefsManager prefsManager = new SharedPrefsManager(context);
@@ -81,9 +60,6 @@ public class DeviceIdProvider {
         return cachedId;
     }
 
-    /**
-     * Human readable description of where {@link #get} came from, for the settings screen.
-     */
     public static String getSource(Context context) {
         get(context);
         return cachedSource != null ? cachedSource : SOURCE_FALLBACK;
@@ -127,10 +103,6 @@ public class DeviceIdProvider {
         }
     }
 
-    /**
-     * ANDROID_ID survives reinstalls and only resets on factory reset. On the rare device where it
-     * is unavailable we persist a random UUID instead, which is stable for as long as the app data is.
-     */
     private static String fallbackId(Context context, SharedPrefsManager prefsManager) {
         String existing = prefsManager.getDeviceId();
         if (isUsable(existing)) {

@@ -22,11 +22,7 @@ import java.util.stream.Collectors;
 public class AssetService {
     private static final String INSIDE_LOCATION_ENDPOINT = "/api/mobile/insideLocation";
 
-    /**
-     * Page size requested for a room. The backend silently caps this (currently at 1000), so the
-     * effective size is read back from the response rather than assumed. Every request also records
-     * a scanner-entry event server side, so we make as few of them as possible.
-     */
+    // The backend caps page size at 1000, and every request records a scanner-entry event.
     private static final int REQUESTED_PAGE_SIZE = 1000;
 
     private final ApiClient apiClient;
@@ -57,9 +53,7 @@ public class AssetService {
         List<Asset> assets = parseAssets(jsonResponse);
         int totalElements = jsonResponse.getJSONObject("pagination").getInt("totalElements");
 
-        // The asset list is rendered in one go, so the whole room has to be collected here.
-        // The server caps the page size, so a room larger than that cap needs the remaining
-        // pages pulling in - otherwise assets would silently go missing from the stocktake.
+        // Room larger than the server cap: pull the rest, or assets go missing from the stocktake.
         for (int page = 1; assets.size() < totalElements; page++) {
             params.put("page", String.valueOf(page));
             List<Asset> nextPage = parseAssets(new JSONObject(apiClient.get(INSIDE_LOCATION_ENDPOINT, params)));

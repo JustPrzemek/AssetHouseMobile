@@ -31,8 +31,6 @@ public class SplashActivity extends AppCompatActivity {
         inventoryService = new InventoryService(this);
         handler = new Handler(Looper.getMainLooper());
 
-        // Resolve the scanner identity early so it is ready before any room is opened.
-        // Non-blocking: a usable fallback is in place immediately either way.
         DeviceIdProvider.resolveAsync(this, null);
 
         loadData();

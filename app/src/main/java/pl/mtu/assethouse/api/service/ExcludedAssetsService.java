@@ -49,9 +49,12 @@ public class ExcludedAssetsService {
                 List<ExcludedAssets> resultList = new ArrayList<>();
                 for (int i = 0; i < assetsArray.length(); i++) {
                     JSONObject assetObject = assetsArray.getJSONObject(i);
-                    String assetId = assetObject.getString("assetId");
-                    String description = assetObject.getString("description");
-                    resultList.add(new ExcludedAssets(assetId, description));
+                    resultList.add(new ExcludedAssets(
+                            assetObject.getString("assetId"),
+                            assetObject.getString("description"),
+                            optionalString(assetObject, "deviceId"),
+                            optionalString(assetObject, "friendlyName"),
+                            optionalString(assetObject, "iconName")));
                 }
 
                 excludedAssetIdCache = resultList.stream()
@@ -62,8 +65,21 @@ public class ExcludedAssetsService {
                 mainThreadHandler.post(() -> callback.onSuccess(resultList));
 
             } catch (IOException | JSONException e) {
+                Log.e("ExcludedAssetsService", "Could not load excluded assets", e);
                 mainThreadHandler.post(() -> callback.onError(e.getMessage()));
             }
         });
+    }
+
+    public static boolean isCacheLoaded() {
+        return excludedAssetIdCache != null;
+    }
+
+    private static String optionalString(JSONObject json, String key) {
+        if (!json.has(key) || json.isNull(key)) {
+            return null;
+        }
+        String value = json.optString(key, null);
+        return value != null && !value.trim().isEmpty() ? value : null;
     }
 }
